@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite databases (do not commit database with credentials/data)
+*.db
+*.sqlite
+*.sqlite3
+feedback.db
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Streamlit local secrets (use Streamlit Cloud dashboard for cloud deployment)
+.streamlit/secrets.toml
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local development helper
+powershell.cmd
