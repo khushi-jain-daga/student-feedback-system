@@ -3,7 +3,20 @@ import sqlite3
 from pathlib import Path
 import os
 
-DB_PATH = Path(os.getenv('FEEDBACK_DB_PATH', Path(__file__).with_name('feedback.db')))
+def _resolve_db_path():
+    env_path = os.getenv('FEEDBACK_DB_PATH')
+    if env_path:
+        return Path(env_path)
+    try:
+        import streamlit as st
+        if 'FEEDBACK_DB_PATH' in st.secrets:
+            return Path(st.secrets['FEEDBACK_DB_PATH'])
+    except Exception:
+        pass
+    return Path(__file__).with_name('feedback.db')
+
+
+DB_PATH = _resolve_db_path()
 
 
 def connection():
@@ -61,6 +74,12 @@ def get_user(username):
     with connection() as db:
         row = db.execute('SELECT * FROM users WHERE username=?', (username,)).fetchone()
         return dict(row) if row else None
+
+
+def update_user_password(username, new_password_hash):
+    with connection() as db:
+        db.execute('UPDATE users SET password_hash=? WHERE username=? COLLATE NOCASE',
+                   (new_password_hash, username))
 
 
 def list_faculty(active_only=True):

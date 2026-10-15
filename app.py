@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 from database import (init_db, list_faculty, add_faculty, set_faculty_active,
                       submit_feedback, fetch_feedback, dashboard_stats)
-from auth import register_student, authenticate, seed_admin
+from auth import register_student, authenticate, seed_admin, is_admin_configured
 
 st.set_page_config(page_title='Student Feedback Portal', page_icon='🎓', layout='wide')
 init_db()
@@ -55,6 +55,12 @@ if st.session_state.user is None:
                         st.error(str(exc))
     with right:
         st.info('**How it works**\n\n1. Students create an account.\n\n2. Submit feedback for faculty.\n\n3. Admin reviews ratings and feedback.')
+        if not is_admin_configured():
+            st.warning(
+                '⚙️ **Admin account not yet initialized**\n\n'
+                'To log in as administrator, set `ADMIN_PASSWORD` (min 8 characters) '
+                'in Streamlit Community Cloud Secrets (or your local environment).'
+            )
 else:
     user = st.session_state.user
     with st.sidebar:

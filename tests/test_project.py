@@ -15,8 +15,13 @@ class ProjectTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         database.DB_PATH = Path(self.temp.name) / 'test.db'
         database.init_db()
+        self.saved_env_admin_pass = os.environ.get('ADMIN_PASSWORD')
 
     def tearDown(self):
+        if self.saved_env_admin_pass is not None:
+            os.environ['ADMIN_PASSWORD'] = self.saved_env_admin_pass
+        else:
+            os.environ.pop('ADMIN_PASSWORD', None)
         import gc
         gc.collect()
         self.temp.cleanup()
@@ -41,9 +46,32 @@ class ProjectTests(unittest.TestCase):
             database.submit_feedback(uid, faculty_id, 'DBMS', 5, 'Second entry')
 
     def test_password_salts(self):
-        a,b=auth.hash_password('Password@123'),auth.hash_password('Password@123')
+        a,b = auth.hash_password('Password@123'), auth.hash_password('Password@123')
         self.assertNotEqual(a,b)
         self.assertTrue(auth.verify_password('Password@123',a))
+
+    def test_admin_seeding_and_secret_sync(self):
+        # Initial: without password, seeding returns False
+        os.environ.pop('ADMIN_PASSWORD', None)
+        self.assertFalse(auth.seed_admin())
+        self.assertFalse(auth.is_admin_configured())
+
+        # Seed admin with first password
+        os.environ['ADMIN_PASSWORD'] = 'InitialPass@123'
+        self.assertTrue(auth.seed_admin())
+        self.assertTrue(auth.is_admin_configured())
+        user = auth.authenticate('admin', 'InitialPass@123')
+        self.assertIsNotNone(user)
+        self.assertEqual(user['role'], 'admin')
+
+        # Rotate password via environment/secrets and verify sync
+        os.environ['ADMIN_PASSWORD'] = 'RotatedPass@456'
+        self.assertTrue(auth.seed_admin())
+        self.assertIsNone(auth.authenticate('admin', 'InitialPass@123'))
+        user_new = auth.authenticate('admin', 'RotatedPass@456')
+        self.assertIsNotNone(user_new)
+        self.assertEqual(user_new['username'], 'admin')
+
 
 if __name__ == '__main__':
     unittest.main()

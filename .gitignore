@@ -1,28 +1,77 @@
-# Byte-compiled / optimized / DLL files
+# ==============================================================================
+# Git Ignore Configuration - Student Feedback Management System
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Byte-compiled / optimized / DLL files (Python caches)
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
 
-# SQLite databases (do not commit database with credentials/data)
+# ------------------------------------------------------------------------------
+# 2. SQLite databases (Never commit local database containing student/admin data)
+# ------------------------------------------------------------------------------
 *.db
 *.sqlite
 *.sqlite3
 feedback.db
+test.db
 
-# Virtual environments
+# ------------------------------------------------------------------------------
+# 3. Environment files & secrets (CRITICAL for Streamlit deployment)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+secrets.toml
+.streamlit/secrets.toml
+*.secret
+*.secrets
+*.pem
+*.key
+*.cert
+*.pfx
+
+# ------------------------------------------------------------------------------
+# 4. Virtual environments
+# ------------------------------------------------------------------------------
 venv/
 .venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
-# Streamlit local secrets (use Streamlit Cloud dashboard for cloud deployment)
-.streamlit/secrets.toml
+# ------------------------------------------------------------------------------
+# 5. Local testing, coverage, and linters
+# ------------------------------------------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.ruff_cache/
+.mypy_cache/
 
-# IDE and OS files
+# ------------------------------------------------------------------------------
+# 6. IDE, editor, and operating system artifacts
+# ------------------------------------------------------------------------------
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
 .DS_Store
 Thumbs.db
+desktop.ini
+*.swp
+*.swo
 
-# Local development helper
+# ------------------------------------------------------------------------------
+# 7. Local development helper scripts & logs
+# ------------------------------------------------------------------------------
 powershell.cmd
+*.log
+*.tmp
+*.bak
