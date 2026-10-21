@@ -41,9 +41,9 @@ class StreamlitAppTests(unittest.TestCase):
         at = create_app_test()
         at.run()
         self.assertFalse(at.exception)
-        tab_labels = [t.label for t in at.tabs]
-        self.assertIn("Sign In", tab_labels)
-        self.assertIn("Create Account", tab_labels)
+        access_radios = [r for r in at.radio if r.label == "Account access"]
+        self.assertEqual(len(access_radios), 1)
+        self.assertEqual(list(access_radios[0].options), ["Sign In", "Create Account"])
         self.assertEqual(len(at.dataframe), 0)
 
         input_labels = [i.label for i in at.text_input]
@@ -53,7 +53,7 @@ class StreamlitAppTests(unittest.TestCase):
         """Verify registration flash message displays on Sign In tab, and login error is exact."""
         # 1. Test flash message
         at = create_app_test()
-        at.session_state.auth_flash_success = True
+        at.session_state.auth_flash_success = "✓ Account created successfully. You can now sign in using your username, email, or registration number."
         at.run()
         self.assertFalse(at.exception)
         success_texts = [s.value for s in at.success]
