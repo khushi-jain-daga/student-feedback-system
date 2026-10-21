@@ -42,8 +42,8 @@ class StreamlitAppTests(unittest.TestCase):
         at.run()
         self.assertFalse(at.exception)
         tab_labels = [t.label for t in at.tabs]
-        self.assertIn("🔐 Sign In", tab_labels)
-        self.assertIn("📝 Create Account", tab_labels)
+        self.assertIn("Sign In", tab_labels)
+        self.assertIn("Create Account", tab_labels)
         self.assertEqual(len(at.dataframe), 0)
 
     def test_user_dashboard_give_review(self):

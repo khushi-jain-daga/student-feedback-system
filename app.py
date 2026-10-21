@@ -35,7 +35,7 @@ def initialize_application():
 
 initialize_application()
 
-# Custom SaaS Design System CSS
+# Custom Institutional SaaS Design System CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
@@ -45,118 +45,320 @@ html, body, [class*="css"] {
     color: #0f172a;
 }
 
+body {
+    background-color: #f8fafc;
+}
+
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
 .block-container {
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+    padding-top: 1.25rem;
+    padding-bottom: 2.5rem;
     max-width: 1200px;
+}
+
+/* Top Subtle Header Bar */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0 1.1rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.top-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.top-header-logo {
+    width: 32px;
+    height: 32px;
+    background: #0f172a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+.top-header-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.top-header-title span {
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.82rem;
+    margin-left: 0.35rem;
+}
+
+.top-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
 /* Landing Hero Section */
 .landing-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0369a1 100%);
-    padding: 2.8rem 2.4rem;
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+    padding: 2.2rem 2rem;
     border-radius: 16px;
     color: #ffffff;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
-    margin-bottom: 2rem;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+    margin-bottom: 1.25rem;
+    border: 1px solid #1e293b;
+}
+
+.landing-logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
 }
 
 .landing-badge {
     display: inline-block;
-    padding: 0.35rem 0.85rem;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.28rem 0.72rem;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(14, 165, 233, 0.25);
     border-radius: 9999px;
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #38bdf8;
-    margin-bottom: 1rem;
 }
 
 .landing-title {
-    font-size: 2.4rem;
+    font-size: 2.05rem;
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.2;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.75rem;
     color: #ffffff;
 }
 
 .landing-subtitle {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     color: #cbd5e1;
     font-weight: 400;
-    line-height: 1.6;
-    max-width: 620px;
+    line-height: 1.55;
+    max-width: 520px;
 }
 
-/* Institutional Card Container */
-.ui-card {
+/* 3 Compact Feature Cards */
+.compact-cards-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.compact-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.8rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    padding: 0.95rem 1.1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ui-card-header {
-    font-size: 1.2rem;
+.compact-card:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+}
+
+.compact-card-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f0f9ff;
+    border: 1px solid #e0f2fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0ea5e9;
+    font-size: 0.95rem;
+    margin-top: 2px;
+}
+
+.compact-card-title {
+    font-size: 0.9rem;
     font-weight: 700;
     color: #0f172a;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.15rem;
     letter-spacing: -0.01em;
 }
 
-.ui-card-sub {
-    font-size: 0.88rem;
+.compact-card-text {
+    font-size: 0.81rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+/* Auth Container Card */
+.auth-container-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.8rem 2rem;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    margin-bottom: 1.5rem;
+}
+
+.auth-header-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.auth-header-caption {
+    font-size: 0.84rem;
     color: #64748b;
     margin-bottom: 1.2rem;
     line-height: 1.5;
 }
 
+/* Institutional UI Card */
+.ui-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+.ui-card-header {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+}
+
+.ui-card-sub {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+}
+
+/* Guided Review Step Flow Card */
+.guided-step-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2.2rem 2.4rem;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+    max-width: 740px;
+    margin: 0 auto 2rem auto;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.step-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.step-desc {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 0.85rem;
+    margin-left: 2.25rem;
+    line-height: 1.45;
+}
+
 /* KPI Cards */
 .kpi-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 1.2rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.1rem;
+    margin-bottom: 1.8rem;
 }
 
 .kpi-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 14px;
-    padding: 1.4rem 1.3rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 1.35rem 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .kpi-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px -2px rgba(15, 23, 42, 0.06);
+    border-color: #cbd5e1;
+    box-shadow: 0 6px 14px -3px rgba(15, 23, 42, 0.05);
 }
 
 .kpi-label {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: #64748b;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.45rem;
     display: flex;
     align-items: center;
     gap: 0.4rem;
 }
 
 .kpi-value {
-    font-size: 2rem;
+    font-size: 1.9rem;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
@@ -164,128 +366,135 @@ header {visibility: hidden;}
 }
 
 .kpi-sub {
-    font-size: 0.8rem;
-    color: #0284c7;
+    font-size: 0.78rem;
+    color: #0ea5e9;
     font-weight: 500;
-    margin-top: 0.4rem;
+    margin-top: 0.35rem;
 }
 
 /* Badges */
 .badge {
     display: inline-block;
-    padding: 0.25rem 0.7rem;
+    padding: 0.22rem 0.65rem;
     border-radius: 9999px;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 600;
     letter-spacing: 0.02em;
 }
-.badge-student { background-color: #e0f2fe; color: #0369a1; }
-.badge-teacher { background-color: #f1f5f9; color: #334155; }
-.badge-admin   { background-color: #fef3c7; color: #92400e; }
-.badge-user    { background-color: #f1f5f9; color: #475569; }
-.badge-active  { background-color: #dcfce7; color: #15803d; }
-.badge-inactive{ background-color: #fee2e2; color: #b91c1c; }
+.badge-student { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+.badge-teacher { background-color: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+.badge-admin   { background-color: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
+.badge-user    { background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+.badge-active  { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.badge-inactive{ background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
 /* Review Card in Feed/Detail */
 .review-item {
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 1.25rem 1.4rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    padding: 1.2rem 1.35rem;
+    margin-bottom: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.15s ease;
+}
+
+.review-item:hover {
+    border-color: #cbd5e1;
 }
 
 .review-item-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.5rem;
 }
 
 .review-reviewer {
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: #0f172a;
 }
 
 .review-date {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: #94a3b8;
 }
 
 .review-stars {
     color: #f59e0b;
-    font-size: 1rem;
+    font-size: 0.95rem;
     letter-spacing: 1px;
 }
 
 .review-text-box {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     color: #334155;
-    line-height: 1.6;
+    line-height: 1.55;
     background: #f8fafc;
-    border-left: 3px solid #0284c7;
-    padding: 0.85rem 1rem;
+    border-left: 3px solid #0ea5e9;
+    padding: 0.8rem 0.95rem;
     border-radius: 6px;
-    margin-top: 0.6rem;
+    margin-top: 0.5rem;
 }
 
 /* Empty State Box */
 .empty-state {
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 2.8rem 2rem;
     background: #f8fafc;
     border: 1.5px dashed #cbd5e1;
     border-radius: 14px;
-    margin: 1.5rem 0;
+    margin: 1.25rem 0;
 }
 
 .empty-state-icon {
-    font-size: 2.2rem;
+    font-size: 2rem;
     color: #94a3b8;
-    margin-bottom: 0.7rem;
+    margin-bottom: 0.5rem;
 }
 
 .empty-state-title {
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.25rem;
 }
 
 .empty-state-text {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     color: #64748b;
-    max-width: 420px;
+    max-width: 400px;
     margin: 0 auto;
 }
 
 /* Success Banner */
 .success-banner {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-radius: 12px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
     padding: 1.8rem;
     text-align: center;
-    margin: 1.5rem 0;
+    margin: 1.5rem auto;
+    max-width: 600px;
 }
 .success-banner-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #065f46;
-    margin-bottom: 0.4rem;
+    color: #166534;
+    margin-bottom: 0.35rem;
 }
 .success-banner-sub {
-    font-size: 0.95rem;
-    color: #047857;
+    font-size: 0.9rem;
+    color: #15803d;
 }
 
 /* Buttons */
 div.stButton > button {
-    border-radius: 9px;
+    border-radius: 10px;
     font-weight: 600;
-    padding: 0.55rem 1.4rem;
+    padding: 0.52rem 1.3rem;
+    font-size: 0.88rem;
     transition: all 0.2s ease;
 }
 
@@ -293,15 +502,122 @@ div.stButton > button[kind="primary"] {
     background-color: #0f172a;
     border-color: #0f172a;
     color: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
 }
 
 div.stButton > button[kind="primary"]:hover {
     background-color: #1e293b;
     border-color: #1e293b;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Input Fields & Labels */
+.stTextInput label, .stSelectbox label, .stTextArea label, .stSlider label {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+div[data-baseweb="input"] {
+    border-radius: 9px !important;
+    border: 1px solid #cbd5e1 !important;
+    background-color: #ffffff !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+div[data-baseweb="input"]:focus-within {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+}
+
+/* Streamlit Tabs Custom Styling */
+div[data-baseweb="tab-list"] {
+    gap: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1.25rem;
+}
+
+div[data-baseweb="tab"] {
+    padding: 0.55rem 1rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #64748b;
+    border-radius: 8px 8px 0 0;
+}
+
+div[data-baseweb="tab"][aria-selected="true"] {
+    color: #0f172a;
+    border-bottom-color: #0ea5e9 !important;
+}
+
+/* Sidebar App-Shell */
+[data-testid="stSidebar"] {
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+}
+
+[data-testid="stSidebar"] [data-baseweb="radio"] div {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 0.75rem;
+        padding-bottom: 1.8rem;
+    }
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .landing-hero {
+        padding: 1.6rem 1.35rem;
+    }
+    .landing-title {
+        font-size: 1.6rem;
+    }
+    .landing-subtitle {
+        font-size: 0.88rem;
+    }
+    .auth-container-card {
+        padding: 1.4rem 1.25rem;
+    }
+    .guided-step-card {
+        padding: 1.5rem 1.25rem;
+    }
+    .step-desc {
+        margin-left: 0;
+    }
+}
+
+/* Footer */
+.app-footer {
+    text-align: center;
+    padding: 2.2rem 0 1rem 0;
+    margin-top: 3.5rem;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.8rem;
+    color: #64748b;
+    letter-spacing: 0.02em;
+}
+
+.app-footer-brand {
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.25rem;
+}
+
+.app-footer-security {
+    font-size: 0.75rem;
+    color: #94a3b8;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # ------------------------------------------------------------------------------
@@ -371,45 +687,78 @@ def rating_stars_label(rating: int) -> str:
 # VIEW 1: LANDING & AUTHENTICATION PAGE
 # ==============================================================================
 def render_landing_page():
-    # Left / Right Responsive Layout
-    col_left, col_right = st.columns([1.1, 1], gap="large")
+    # Top Subtle Header
+    st.markdown("""
+    <div class="top-header">
+        <div class="top-header-brand">
+            <div class="top-header-logo">🎓</div>
+            <div class="top-header-title">Student Feedback Management System <span>• Academic Portal</span></div>
+        </div>
+        <div class="top-header-badge">
+            <span class="pulse-dot"></span> Secure Portal
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Left / Right Responsive Layout (Desktop balanced 47/53 layout)
+    col_left, col_right = st.columns([47, 53], gap="large")
 
     with col_left:
         st.markdown("""
         <div class="landing-hero">
-            <div class="landing-badge">Institutional Evaluation Portal</div>
+            <div class="landing-logo-mark">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L3 7V12C3 17.52 6.84 22.74 12 24C17.16 22.74 21 17.52 21 12V7L12 2Z" fill="rgba(14, 165, 233, 0.18)" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 7L16 9.5V13.5L12 16L8 13.5V9.5L12 7Z" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="landing-badge">Institutional Evaluation Portal</span>
+            </div>
             <div class="landing-title">Student Feedback<br>Management System</div>
             <div class="landing-subtitle">
-                A secure platform for structured peer and faculty feedback.
+                Secure, structured peer and faculty evaluation for academic institutions.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         st.markdown("""
-        <div class="ui-card">
-            <div class="ui-card-header">System Principles & Privacy</div>
-            <div class="ui-card-sub">Engineered to foster transparent, constructive, and fair academic growth.</div>
-            <div style="font-size:0.9rem; color:#475569; line-height:1.7;">
-                <p style="margin-bottom:0.7rem;">
-                    🔒 <strong>Strict Privacy:</strong> Individual reviews, ratings, and evaluator identities are accessible exclusively to authorized academic administrators.
-                </p>
-                <p style="margin-bottom:0.7rem;">
-                    👥 <strong>Master Student Directory:</strong> Integrated official student directory identified by validated registration numbers.
-                </p>
-                <p style="margin-bottom:0.7rem;">
-                    🛡️ <strong>Fairness Safeguards:</strong> Self-evaluations are strictly prohibited, and subsequent submissions automatically update your existing review without duplicates.
-                </p>
+        <div class="compact-cards-stack">
+            <div class="compact-card">
+                <div class="compact-card-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+                <div>
+                    <div class="compact-card-title">Private Reviews</div>
+                    <div class="compact-card-text">Reviews are visible only to authorized administrators.</div>
+                </div>
+            </div>
+            <div class="compact-card">
+                <div class="compact-card-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div>
+                    <div class="compact-card-title">Verified Directory</div>
+                    <div class="compact-card-text">Students are identified using official registration numbers.</div>
+                </div>
+            </div>
+            <div class="compact-card">
+                <div class="compact-card-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <div>
+                    <div class="compact-card-title">Fair Evaluation</div>
+                    <div class="compact-card-text">Self-review and duplicate review protections are enforced.</div>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     with col_right:
-        auth_tab_login, auth_tab_register = st.tabs(["🔐 Sign In", "📝 Create Account"])
+        st.markdown('<div class="auth-container-card">', unsafe_allow_html=True)
+        auth_tab_login, auth_tab_register = st.tabs(["Sign In", "Create Account"])
 
         # TAB 1: SIGN IN
         with auth_tab_login:
-            st.markdown("#### Welcome Back")
-            st.caption("Sign in with your registered username or institutional email address.")
+            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in with your registered username or institutional email address.</div>', unsafe_allow_html=True)
 
             with st.form("login_form", clear_on_submit=False):
                 login_id = st.text_input(
@@ -437,8 +786,7 @@ def render_landing_page():
 
         # TAB 2: CREATE ACCOUNT
         with auth_tab_register:
-            st.markdown("#### Create Account")
-            st.caption("Register a new account to participate in academic reviews.")
+            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Register a new account to participate in academic reviews.</div>', unsafe_allow_html=True)
 
             with st.form("register_form", clear_on_submit=True):
                 reg_name = st.text_input("Full Name", placeholder="e.g. AMIT AGARWAL")
@@ -470,6 +818,16 @@ def render_landing_page():
                         st.error(str(err))
                     except Exception as err:
                         st.error(f"Registration failed: {err}")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Bottom Footer
+    st.markdown("""
+    <div class="app-footer">
+        <div class="app-footer-brand">Student Feedback Management System</div>
+        <div class="app-footer-security">Secure • Private • Role-Based Access</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ==============================================================================
@@ -523,16 +881,20 @@ def render_user_dashboard(user):
                 st.rerun()
             return
 
-        # Main Feedback Form Container
-        col_center, _ = st.columns([1, 0.05])
+        # Main Feedback Form Container with Guided Step Flow
+        _, col_center, _ = st.columns([0.08, 0.84, 0.08])
         with col_center:
+            st.markdown('<div class="guided-step-card">', unsafe_allow_html=True)
+
+            # STEP 1: Choose Review Type
             st.markdown("""
-            <div class="ui-card" style="max-width:850px;">
-                <div class="ui-card-header">Step 1: Choose Review Type</div>
-                <div class="ui-card-sub">Select whether you would like to evaluate a student peer or a faculty teacher.</div>
+            <div class="step-header">
+                <span class="step-num">1</span>
+                <span class="step-title">Choose Student / Teacher</span>
+            </div>
+            <div class="step-desc">Select whether you would like to evaluate a student peer or a faculty teacher.</div>
             """, unsafe_allow_html=True)
 
-            # STEP 1: Review Type Toggle
             review_type_choice = st.radio(
                 "Review Type",
                 ["Student", "Teacher"],
@@ -541,7 +903,7 @@ def render_user_dashboard(user):
             )
             person_type = review_type_choice.lower()
 
-            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.2rem 0;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
 
             # STEP 2: Select Person (Self-review prevention included)
             eligible_people = database.list_people(
@@ -564,8 +926,11 @@ def render_user_dashboard(user):
                 return
 
             st.markdown("""
-                <div class="ui-card-header">Step 2: Select Person</div>
-                <div class="ui-card-sub">Search by name or registration number from the verified directory.</div>
+            <div class="step-header">
+                <span class="step-num">2</span>
+                <span class="step-title">Select Person</span>
+            </div>
+            <div class="step-desc">Search by name or registration number from the verified directory.</div>
             """, unsafe_allow_html=True)
 
             if person_type == "student":
@@ -598,13 +963,16 @@ def render_user_dashboard(user):
                 initial_comment = ""
                 submit_label = "Submit Review"
 
-            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.2rem 0;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
 
             with st.form("give_review_form"):
                 # STEP 3: Rating (1 to 5 Stars with clear labels)
                 st.markdown("""
-                    <div class="ui-card-header">Step 3: Rating</div>
-                    <div class="ui-card-sub">Select an objective rating reflecting your evaluation.</div>
+                <div class="step-header">
+                    <span class="step-num">3</span>
+                    <span class="step-title">Rate</span>
+                </div>
+                <div class="step-desc">Select an objective rating reflecting your evaluation.</div>
                 """, unsafe_allow_html=True)
 
                 rating = st.select_slider(
@@ -614,20 +982,34 @@ def render_user_dashboard(user):
                     format_func=rating_stars_label
                 )
 
-                st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.2rem 0;'>", unsafe_allow_html=True)
+                st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
 
                 # STEP 4: Review text area
                 st.markdown("""
-                    <div class="ui-card-header">Step 4: Written Feedback</div>
-                    <div class="ui-card-sub">Provide detailed, constructive, and respectful observations.</div>
+                <div class="step-header">
+                    <span class="step-num">4</span>
+                    <span class="step-title">Write Feedback</span>
+                </div>
+                <div class="step-desc">Provide detailed, constructive, and respectful observations.</div>
                 """, unsafe_allow_html=True)
 
                 comment = st.text_area(
                     "Review / Comments",
                     value=initial_comment,
                     placeholder="Share constructive and respectful feedback...",
-                    height=140
+                    height=130
                 )
+
+                st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
+
+                # STEP 5: Submit
+                st.markdown("""
+                <div class="step-header">
+                    <span class="step-num">5</span>
+                    <span class="step-title">Submit</span>
+                </div>
+                <div class="step-desc">Send your confidential evaluation securely to the administrative portal.</div>
+                """, unsafe_allow_html=True)
 
                 submit_btn = st.form_submit_button(submit_label, type="primary", use_container_width=True)
 
