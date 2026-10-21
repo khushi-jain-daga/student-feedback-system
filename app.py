@@ -4,7 +4,7 @@ strict normal-user privacy guarantees, master student directory with registratio
 comprehensive analytics, and an advanced administrator control center.
 """
 import datetime
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import pandas as pd
 import streamlit as st
 
@@ -12,7 +12,7 @@ import database
 import auth
 
 # ------------------------------------------------------------------------------
-# Page Configuration & Design System
+# Page Configuration & Application Initialization
 # ------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Student Feedback Management System",
@@ -35,7 +35,9 @@ def initialize_application():
 
 initialize_application()
 
-# Custom Institutional SaaS Design System CSS
+# ------------------------------------------------------------------------------
+# Visual Design System CSS (Modern Institutional Portal)
+# ------------------------------------------------------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
@@ -49,17 +51,49 @@ body {
     background-color: #f8fafc;
 }
 
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-
-.block-container {
-    padding-top: 1.25rem;
-    padding-bottom: 2.5rem;
-    max-width: 1200px;
+#MainMenu, footer, header {
+    visibility: hidden;
 }
 
-/* Top Subtle Header Bar */
+.block-container {
+    padding-top: 1.1rem;
+    padding-bottom: 3rem;
+    max-width: 1220px;
+}
+
+/* Primary and secondary button overrides */
+button[kind="primary"] {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-radius: 9px !important;
+    font-weight: 600 !important;
+    border: 1px solid #0f172a !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+    transition: all 0.15s ease !important;
+}
+
+button[kind="primary"]:hover {
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12) !important;
+}
+
+button[kind="secondary"] {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-radius: 9px !important;
+    font-weight: 600 !important;
+    border: 1px solid #cbd5e1 !important;
+    transition: all 0.15s ease !important;
+}
+
+button[kind="secondary"]:hover {
+    border-color: #94a3b8 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Top Subtle Header Bar for Landing */
 .top-header {
     display: flex;
     justify-content: space-between;
@@ -171,7 +205,7 @@ header {visibility: hidden;}
     max-width: 520px;
 }
 
-/* 3 Compact Feature Cards */
+/* 3 Compact Feature Cards on Landing */
 .compact-cards-stack {
     display: flex;
     flex-direction: column;
@@ -275,54 +309,391 @@ header {visibility: hidden;}
     line-height: 1.5;
 }
 
-/* Guided Review Step Flow Card */
-.guided-step-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    padding: 2.2rem 2.4rem;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
-    max-width: 740px;
-    margin: 0 auto 2rem auto;
-}
-
-.step-header {
+/* User Portal Top Navbar */
+.nav-brand-container {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 0.4rem;
-    margin-top: 0.5rem;
 }
 
-.step-num {
-    display: inline-flex;
+.nav-brand-logo {
+    width: 36px;
+    height: 36px;
+    background: #0f172a;
+    border-radius: 10px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: #0f172a;
-    color: #ffffff;
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
 }
 
-.step-title {
-    font-size: 0.98rem;
+.nav-brand-text {
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.nav-brand-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Segmented Control Styling */
+div[data-testid="stSegmentedControl"] {
+    display: flex;
+    justify-content: center;
+}
+
+div[data-testid="stSegmentedControl"] button {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    padding: 0.35rem 1rem !important;
+    transition: all 0.15s ease !important;
+}
+
+/* User Home Dashboard */
+.home-greeting-box {
+    margin-bottom: 1.85rem;
+}
+
+.home-greeting-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
+}
+
+.home-greeting-sub {
+    font-size: 0.96rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.home-action-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.75rem 1.6rem 1.25rem 1.6rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 220px;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-action-card:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.05);
+}
+
+.home-card-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.icon-blue { background: #f0f9ff; border: 1px solid #e0f2fe; color: #0284c7; }
+.icon-slate { background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; }
+
+.home-card-title {
+    font-size: 1.2rem;
     font-weight: 700;
     color: #0f172a;
+    margin-bottom: 0.35rem;
     letter-spacing: -0.01em;
 }
 
-.step-desc {
+.home-card-desc {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.home-stats-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.progress-track {
+    background: #f1f5f9;
+    height: 8px;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 1.2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #0ea5e9, #0284c7);
+}
+
+.home-privacy-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.9rem 1.25rem;
+    margin-top: 1.75rem;
+    color: #475569;
+    font-size: 0.84rem;
+}
+
+/* Directory Page */
+.dir-header-box {
+    margin-bottom: 1.4rem;
+}
+
+.dir-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+}
+
+.dir-subtitle {
+    font-size: 0.92rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+}
+
+/* Directory Person Card */
+.pcard-body {
+    padding-bottom: 0.75rem;
+}
+
+.pcard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.pcard-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: -0.02em;
+}
+
+.pcard-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.35rem;
+}
+
+.pcard-reg {
+    margin-bottom: 0.35rem;
+}
+
+.pcard-dept {
+    font-size: 0.78rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.status-submitted {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+}
+
+.badge-reg {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.22rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.badge-student { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+.badge-teacher { background-color: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
+.badge-admin   { background-color: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
+.badge-user    { background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+.badge-active  { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+.badge-inactive{ background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* Feedback Detail View */
+.feedback-container {
+    max-width: 740px;
+    margin: 0 auto;
+}
+
+.target-profile-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    margin: 1.25rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.target-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.target-info {
+    flex-grow: 1;
+}
+
+.target-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.25rem;
+}
+
+.target-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.target-sub {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.privacy-notice-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.privacy-notice-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.privacy-notice-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.2rem;
+}
+
+.privacy-notice-desc {
     font-size: 0.82rem;
     color: #64748b;
-    margin-bottom: 0.85rem;
-    margin-left: 2.25rem;
     line-height: 1.45;
 }
 
-/* KPI Cards */
+/* Post-submission Success Card */
+.submission-success-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    border-radius: 18px;
+    padding: 2.8rem 2rem;
+    text-align: center;
+    max-width: 540px;
+    margin: 2rem auto;
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.06);
+}
+
+.success-icon-badge {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    color: #16a34a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+}
+
+.success-card-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+}
+
+.success-card-desc {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 1.75rem;
+}
+
+/* KPI Cards (Admin) */
 .kpi-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -372,23 +743,7 @@ header {visibility: hidden;}
     margin-top: 0.35rem;
 }
 
-/* Badges */
-.badge {
-    display: inline-block;
-    padding: 0.22rem 0.65rem;
-    border-radius: 9999px;
-    font-size: 0.74rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-}
-.badge-student { background-color: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
-.badge-teacher { background-color: #f8fafc; color: #334155; border: 1px solid #e2e8f0; }
-.badge-admin   { background-color: #fefce8; color: #854d0e; border: 1px solid #fef08a; }
-.badge-user    { background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-.badge-active  { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.badge-inactive{ background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-/* Review Card in Feed/Detail */
+/* Review Item in Feed/Detail */
 .review-item {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -449,149 +804,23 @@ header {visibility: hidden;}
 }
 
 .empty-state-icon {
-    font-size: 2rem;
-    color: #94a3b8;
-    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 0.6rem;
 }
 
 .empty-state-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #334155;
-    margin-bottom: 0.25rem;
+    color: #0f172a;
+    margin-bottom: 0.3rem;
 }
 
 .empty-state-text {
-    font-size: 0.84rem;
+    font-size: 0.86rem;
     color: #64748b;
-    max-width: 400px;
+    max-width: 420px;
     margin: 0 auto;
-}
-
-/* Success Banner */
-.success-banner {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 14px;
-    padding: 1.8rem;
-    text-align: center;
-    margin: 1.5rem auto;
-    max-width: 600px;
-}
-.success-banner-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #166534;
-    margin-bottom: 0.35rem;
-}
-.success-banner-sub {
-    font-size: 0.9rem;
-    color: #15803d;
-}
-
-/* Buttons */
-div.stButton > button {
-    border-radius: 10px;
-    font-weight: 600;
-    padding: 0.52rem 1.3rem;
-    font-size: 0.88rem;
-    transition: all 0.2s ease;
-}
-
-div.stButton > button[kind="primary"] {
-    background-color: #0f172a;
-    border-color: #0f172a;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
-}
-
-div.stButton > button[kind="primary"]:hover {
-    background-color: #1e293b;
-    border-color: #1e293b;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-    transform: translateY(-1px);
-}
-
-/* Input Fields & Labels */
-.stTextInput label, .stSelectbox label, .stTextArea label, .stSlider label {
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    color: #334155 !important;
-    margin-bottom: 0.25rem !important;
-}
-
-div[data-baseweb="input"] {
-    border-radius: 9px !important;
-    border: 1px solid #cbd5e1 !important;
-    background-color: #ffffff !important;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
-}
-
-div[data-baseweb="input"]:focus-within {
-    border-color: #0ea5e9 !important;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
-}
-
-/* Streamlit Tabs Custom Styling */
-div[data-baseweb="tab-list"] {
-    gap: 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 1.25rem;
-}
-
-div[data-baseweb="tab"] {
-    padding: 0.55rem 1rem;
-    font-weight: 600;
-    font-size: 0.88rem;
-    color: #64748b;
-    border-radius: 8px 8px 0 0;
-}
-
-div[data-baseweb="tab"][aria-selected="true"] {
-    color: #0f172a;
-    border-bottom-color: #0ea5e9 !important;
-}
-
-/* Sidebar App-Shell */
-[data-testid="stSidebar"] {
-    background-color: #ffffff;
-    border-right: 1px solid #e2e8f0;
-}
-
-[data-testid="stSidebar"] [data-baseweb="radio"] div {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-/* Responsive Media Queries */
-@media (max-width: 768px) {
-    .block-container {
-        padding-top: 0.75rem;
-        padding-bottom: 1.8rem;
-    }
-    .top-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    .landing-hero {
-        padding: 1.6rem 1.35rem;
-    }
-    .landing-title {
-        font-size: 1.6rem;
-    }
-    .landing-subtitle {
-        font-size: 0.88rem;
-    }
-    .auth-container-card {
-        padding: 1.4rem 1.25rem;
-    }
-    .guided-step-card {
-        padding: 1.5rem 1.25rem;
-    }
-    .step-desc {
-        margin-left: 0;
-    }
+    line-height: 1.5;
 }
 
 /* Footer */
@@ -615,9 +844,28 @@ div[data-baseweb="tab"][aria-selected="true"] {
     font-size: 0.75rem;
     color: #94a3b8;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 0.5rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    .landing-title {
+        font-size: 1.6rem;
+    }
+    .home-greeting-title {
+        font-size: 1.6rem;
+    }
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
-
 
 
 # ------------------------------------------------------------------------------
@@ -632,19 +880,22 @@ if "review_submitted" not in st.session_state:
 if "auth_flash_success" not in st.session_state:
     st.session_state.auth_flash_success = None
 
-if "auth_view" not in st.session_state:
-    st.session_state.auth_view = "Sign In"
-
-if "new_account_created" not in st.session_state:
-    st.session_state.new_account_created = False
-
 if "admin_active_tab" not in st.session_state:
-    st.session_state.admin_active_tab = "Dashboard"
+    st.session_state.admin_active_tab = "Overview"
 
-if "user_active_tab" not in st.session_state:
-    st.session_state.user_active_tab = "Give Review"
+if "user_nav" not in st.session_state:
+    st.session_state.user_nav = "Home"
 
-# Review filter states for Reset button
+if "active_target_person" not in st.session_state:
+    st.session_state.active_target_person = None
+
+if "active_target_type" not in st.session_state:
+    st.session_state.active_target_type = "student"
+
+if "student_page" not in st.session_state:
+    st.session_state.student_page = 1
+
+# Review filter states for Admin Reset button
 if "rf_type" not in st.session_state:
     st.session_state.rf_type = "All"
 if "rf_rating" not in st.session_state:
@@ -658,8 +909,38 @@ if "rf_search" not in st.session_state:
 
 
 # ------------------------------------------------------------------------------
-# Formatting Helpers
+# Avatar & Formatting Helpers
 # ------------------------------------------------------------------------------
+AVATAR_PALETTE = [
+    ("#e0f2fe", "#0369a1"),  # Light Sky / Dark Sky
+    ("#f0fdf4", "#15803d"),  # Light Green / Dark Green
+    ("#fef3c7", "#b45309"),  # Light Amber / Dark Amber
+    ("#f3e8ff", "#7e22ce"),  # Light Purple / Dark Purple
+    ("#fce7f3", "#be185d"),  # Light Pink / Dark Pink
+    ("#e0e7ff", "#4338ca"),  # Light Indigo / Dark Indigo
+    ("#ccfbf1", "#0f766e"),  # Light Teal / Dark Teal
+]
+
+def get_avatar_style(name: str):
+    """Return deterministic background and foreground colors for avatar based on name."""
+    if not name:
+        return ("#f1f5f9", "#475569")
+    idx = sum(ord(c) for c in name) % len(AVATAR_PALETTE)
+    return AVATAR_PALETTE[idx]
+
+def get_initials(name: str) -> str:
+    """Extract 1 or 2 letter initials from a name (e.g. 'AMIT AGARWAL' -> 'AA', 'Dr. Sharma' -> 'S')."""
+    if not name:
+        return "??"
+    parts = [p for p in name.strip().split() if p and not p.lower().rstrip('.').startswith(('dr', 'prof', 'mr', 'ms', 'mrs', 'er'))]
+    if not parts:
+        parts = [p.rstrip('.') for p in name.strip().split() if p]
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[-1][0]).upper()
+    elif parts:
+        return parts[0][:2].upper()
+    return "??"
+
 def format_datetime(val) -> str:
     """Safely format database timestamp for clean display."""
     if val is None:
@@ -671,12 +952,10 @@ def format_datetime(val) -> str:
         return val_str[:16].replace("T", " ")
     return val_str
 
-
 def rating_stars(rating: int) -> str:
     """Render numeric rating as visual star symbols (e.g. ★★★★☆)."""
     r = int(rating or 0)
     return "★" * r + "☆" * (5 - r)
-
 
 def rating_stars_label(rating: int) -> str:
     """Render star rating with textual academic descriptor."""
@@ -764,79 +1043,71 @@ def render_landing_page():
     with col_right:
         st.markdown('<div class="auth-container-card">', unsafe_allow_html=True)
 
+        # Persistent authentication flash message after registration
         if st.session_state.get("auth_flash_success"):
-            st.success(st.session_state.auth_flash_success)
+            flash_msg = st.session_state.auth_flash_success if isinstance(st.session_state.auth_flash_success, str) else "✓ Account created successfully\n\nYou can now sign in using your username, email, or registration number."
+            st.success(flash_msg)
             st.session_state.auth_flash_success = None
 
-        auth_view = st.radio(
+        auth_mode = st.radio(
             "Account access",
             ["Sign In", "Create Account"],
             horizontal=True,
-            key="auth_view",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            key="auth_mode_selector"
         )
 
-        if auth_view == "Sign In":
-            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in using your username, email address, or registration number.</div>', unsafe_allow_html=True)
+        # TAB 1: SIGN IN
+        if auth_mode == "Sign In":
+            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in with your registered username, email address, or registration number.</div>', unsafe_allow_html=True)
 
             with st.form("login_form", clear_on_submit=False):
                 login_id = st.text_input(
                     "Username, Email or Registration Number",
-                    placeholder="e.g. username, user@university.edu, or 23BCON0028"
+                    placeholder="e.g. user@university.edu, username, or 23BCON0028"
                 )
                 login_password = st.text_input(
                     "Password",
                     type="password",
-                    placeholder="Enter your password"
+                    placeholder="Enter your account password"
                 )
-                submit_login = st.form_submit_button(
-                    "Sign In to Portal",
-                    type="primary",
-                    use_container_width=True
-                )
+                submit_login = st.form_submit_button("Sign In to Portal", type="primary", use_container_width=True)
 
             if submit_login:
                 if not login_id.strip() or not login_password:
-                    st.error("Please enter both your account identifier and password.")
+                    st.error("Please enter both your identifier and password.")
                 else:
-                    try:
-                        user_data = auth.authenticate(login_id.strip(), login_password)
-                    except Exception as err:
-                        print(f"[AUTH ERROR] Login failed with {type(err).__name__}")
-                        user_data = None
-                        st.error("Sign in is temporarily unavailable. Please try again.")
+                    user_data = auth.authenticate(login_id.strip(), login_password)
+                    if user_data:
+                        st.session_state.user = user_data
+                        st.session_state.user_nav = "Home"
+                        st.session_state.active_target_person = None
+                        st.session_state.review_submitted = False
+                        st.rerun()
                     else:
-                        if user_data:
-                            st.session_state.user = user_data
-                            st.session_state.review_submitted = False
-                            st.rerun()
-                        else:
-                            st.error("Account not found or password is incorrect.")
+                        st.error("Account not found or password is incorrect.")
 
+        # TAB 2: CREATE ACCOUNT
         else:
-            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Create your account once, then use it anytime to submit feedback securely.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Register a new account to participate in academic reviews.</div>', unsafe_allow_html=True)
 
-            with st.form("register_form", clear_on_submit=False):
+            with st.form("register_form", clear_on_submit=True):
                 reg_name = st.text_input("Full Name", placeholder="e.g. AMIT AGARWAL")
-                reg_user = st.text_input("Username", placeholder="e.g. amitag")
-                reg_email = st.text_input("Email Address", placeholder="e.g. amit@example.com")
+                reg_user = st.text_input("Username", placeholder="e.g. amitag (minimum 3 characters)")
+                reg_email = st.text_input("Email Address", placeholder="e.g. amit.agarwal@university.edu")
                 reg_no = st.text_input(
-                    "Registration Number (optional for non-students)",
+                    "Registration Number (Students only — e.g. 23BCON0028)",
                     placeholder="e.g. 23BCON0028"
                 )
-                reg_pass = st.text_input("Password", type="password", placeholder="Minimum 8 characters")
+                reg_pass = st.text_input("Password (min 8 characters)", type="password")
                 reg_confirm = st.text_input("Confirm Password", type="password")
-                submit_reg = st.form_submit_button(
-                    "Create Account",
-                    type="primary",
-                    use_container_width=True
-                )
+                submit_reg = st.form_submit_button("Create Account", type="primary", use_container_width=True)
 
             if submit_reg:
                 if not reg_name.strip() or not reg_user.strip() or not reg_email.strip():
                     st.error("Please complete your name, username, and email.")
                 elif reg_pass != reg_confirm:
-                    st.error("Passwords do not match.")
+                    st.error("Passwords do not match. Please verify both password entries.")
                 else:
                     try:
                         user_id = auth.register_user(
@@ -844,26 +1115,22 @@ def render_landing_page():
                             username=reg_user.strip(),
                             email=reg_email.strip(),
                             password=reg_pass,
-                            role="user",
-                            registration_no=reg_no.strip() if reg_no.strip() else None
+                            role='user',
+                            registration_no=reg_no.strip() if reg_no and reg_no.strip() else None
                         )
-                        if not user_id:
-                            raise RuntimeError("User creation returned no ID")
-
                         user_data = auth.authenticate(reg_user.strip(), reg_pass)
-                        if not user_data:
-                            raise RuntimeError("Created account could not be authenticated")
-
-                        st.session_state.user = user_data
-                        st.session_state.new_account_created = True
-                        st.session_state.review_submitted = False
+                        if user_data:
+                            st.session_state.user = user_data
+                            st.session_state.new_account_created = True
+                            st.session_state.user_nav = "Home"
+                            st.session_state.review_submitted = False
+                        else:
+                            st.session_state.auth_flash_success = "✓ Account created successfully. You can now sign in using your username, email, or registration number."
                         st.rerun()
-
                     except ValueError as err:
                         st.error(str(err))
                     except Exception as err:
-                        print(f"[AUTH ERROR] Registration failed with {type(err).__name__}")
-                        st.error("Account could not be created right now. Please try again.")
+                        st.error(f"Registration failed: {err}")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -877,285 +1144,613 @@ def render_landing_page():
 
 
 # ==============================================================================
-# VIEW 2: NORMAL USER PORTAL
+# VIEW 2: NORMAL USER PORTAL (Home → Students → Teachers → My Profile)
 # ==============================================================================
+def render_user_navbar(user):
+    """Clean institutional top navbar with active navigation highlighting and user credentials."""
+    st.markdown("""
+    <style>
+    section[data-testid="stSidebar"] {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col_brand, col_nav, col_profile = st.columns([2.8, 4.4, 2.8], vertical_alignment="center")
+
+    with col_brand:
+        st.markdown("""
+        <div class="nav-brand-container">
+            <div class="nav-brand-logo">🎓</div>
+            <div>
+                <div class="nav-brand-text">Student Feedback System</div>
+                <div class="nav-brand-sub">Institutional Portal</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_nav:
+        nav_options = ["Home", "Students", "Teachers", "My Profile"]
+        cur_nav = st.session_state.get("user_nav", "Home")
+        if cur_nav == "Feedback Form":
+            highlight = "Students" if st.session_state.get("active_target_type") == "student" else "Teachers"
+        else:
+            highlight = cur_nav if cur_nav in nav_options else "Home"
+
+        selected = st.segmented_control(
+            "User Navigation",
+            options=nav_options,
+            default=highlight,
+            label_visibility="collapsed",
+            key="user_top_nav_control"
+        )
+        if selected and selected != cur_nav and cur_nav != "Feedback Form":
+            st.session_state.user_nav = selected
+            st.session_state.active_target_person = None
+            st.session_state.review_submitted = False
+            st.rerun()
+        elif selected and selected != highlight and cur_nav == "Feedback Form":
+            st.session_state.user_nav = selected
+            st.session_state.active_target_person = None
+            st.session_state.review_submitted = False
+            st.rerun()
+
+    with col_profile:
+        col_uinfo, col_ubtn = st.columns([2.5, 1.2], vertical_alignment="center")
+        with col_uinfo:
+            reg_display = f"<span class='badge-reg'>{user.get('registration_no')}</span>" if user.get('registration_no') else "<span class='badge badge-user'>Standard</span>"
+            st.markdown(f"""
+            <div style="text-align: right; line-height: 1.25;">
+                <div style="font-weight: 700; font-size: 0.88rem; color: #0f172a;">{user['name']}</div>
+                <div style="margin-top: 2px;">{reg_display}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_ubtn:
+            if st.button("Sign Out", key="user_top_signout", help="Sign out of your account"):
+                st.session_state.user = None
+                st.session_state.user_nav = "Home"
+                st.session_state.active_target_person = None
+                st.session_state.review_submitted = False
+                st.rerun()
+
+    st.markdown("<hr style='border:none; border-top:1px solid #e2e8f0; margin: 0.6rem 0 1.85rem 0;'>", unsafe_allow_html=True)
+
+
+def render_user_home(user):
+    """User Home dashboard with greeting, progress metrics, and direct directory browsing CTAs."""
+    first_name = user['name'].split()[0] if user.get('name') else 'Student'
+
+    st.markdown(f"""
+    <div class="home-greeting-box">
+        <div class="home-greeting-title">Hello, {first_name} 👋</div>
+        <div class="home-greeting-sub">Share constructive feedback and help your academic community grow.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Compute numbers for Student and Teacher cards
+    eligible_students = database.list_people(
+        person_type="student",
+        active_only=True,
+        exclude_user_id=user['id'],
+        exclude_name=user['name'],
+        exclude_regno=user.get('registration_no')
+    )
+    total_students = len(eligible_students)
+
+    active_teachers = database.list_people(
+        person_type="teacher",
+        active_only=True
+    )
+    total_teachers = len(active_teachers)
+
+    reviews_by_type = database.count_user_reviews_by_type(user['id'])
+    reviewed_students = min(reviews_by_type.get('student', 0), total_students)
+    reviewed_teachers = min(reviews_by_type.get('teacher', 0), total_teachers)
+
+    st_pct = int((reviewed_students / total_students * 100)) if total_students > 0 else 0
+    t_pct = int((reviewed_teachers / total_teachers * 100)) if total_teachers > 0 else 0
+
+    col_c1, col_c2 = st.columns(2, gap="large")
+
+    with col_c1:
+        st.markdown(f"""
+        <div class="home-action-card">
+            <div>
+                <div class="home-card-icon-wrap icon-blue">🎓</div>
+                <div class="home-card-title">Student Feedback</div>
+                <div class="home-card-desc">Review your classmates and share constructive feedback.</div>
+                <div class="home-stats-meta">
+                    <span>{reviewed_students} of {total_students} reviewed</span>
+                    <span>{st_pct}% completed</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {st_pct}%;"></div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Browse Students →", key="home_browse_students", type="primary", use_container_width=True):
+            st.session_state.user_nav = "Students"
+            st.session_state.active_target_person = None
+            st.session_state.review_submitted = False
+            st.rerun()
+
+    with col_c2:
+        st.markdown(f"""
+        <div class="home-action-card">
+            <div>
+                <div class="home-card-icon-wrap icon-slate">👨‍🏫</div>
+                <div class="home-card-title">Teacher Feedback</div>
+                <div class="home-card-desc">Share feedback about faculty members.</div>
+                <div class="home-stats-meta">
+                    <span>{reviewed_teachers} of {total_teachers} reviewed</span>
+                    <span>{t_pct}% completed</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {t_pct}%;"></div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Browse Teachers →", key="home_browse_teachers", type="primary", use_container_width=True):
+            st.session_state.user_nav = "Teachers"
+            st.session_state.active_target_person = None
+            st.session_state.review_submitted = False
+            st.rerun()
+
+    # Small Privacy Notice
+    st.markdown("""
+    <div class="home-privacy-banner">
+        <span style="font-size:1.15rem;">🔒</span>
+        <span>Your individual feedback is visible only to authorized administrators.</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_student_directory(user):
+    """Student Directory with search, responsive cards, submitted state, and pagination."""
+    st.markdown("""
+    <div class="dir-header-box">
+        <div class="dir-title">Student Feedback</div>
+        <div class="dir-subtitle">Choose a student and share constructive feedback.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_search, col_cnt = st.columns([3, 1], vertical_alignment="center")
+    with col_search:
+        search_query = st.text_input(
+            "Search by name or registration number",
+            placeholder="Search by name or registration number (e.g. AMIT or 23BCON0028)...",
+            label_visibility="collapsed",
+            key="st_dir_search_input"
+        )
+
+    # Fetch eligible students (strictly excluding logged-in user)
+    students = database.list_people(
+        person_type="student",
+        active_only=True,
+        exclude_user_id=user['id'],
+        exclude_name=user['name'],
+        exclude_regno=user.get('registration_no'),
+        search_query=search_query
+    )
+
+    with col_cnt:
+        st.markdown(f"<div style='text-align:right; font-size:0.85rem; color:#64748b; font-weight:600;'>{len(students)} available</div>", unsafe_allow_html=True)
+
+    if not students:
+        st.markdown("""
+        <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-title">No Students Found</div>
+            <div class="empty-state-text">No active classmates match your search criteria.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+
+    user_reviews = database.get_user_reviewed_person_ids(user['id'])
+
+    # Pagination: 12 cards per page (3 cards x 4 rows)
+    PAGE_SIZE = 12
+    total_pages = max(1, (len(students) + PAGE_SIZE - 1) // PAGE_SIZE)
+    if "student_page" not in st.session_state or st.session_state.student_page > total_pages:
+        st.session_state.student_page = 1
+
+    current_page = st.session_state.student_page
+    start_idx = (current_page - 1) * PAGE_SIZE
+    page_students = students[start_idx : start_idx + PAGE_SIZE]
+
+    for row_start in range(0, len(page_students), 3):
+        chunk = page_students[row_start : row_start + 3]
+        cols = st.columns(3)
+        for i, s in enumerate(chunk):
+            with cols[i]:
+                with st.container(border=True):
+                    has_reviewed = s['id'] in user_reviews
+                    bg_color, fg_color = get_avatar_style(s['name'])
+                    initials = get_initials(s['name'])
+                    reg = s.get('registration_no') or 'N/A'
+                    dept = s.get('department') or 'General'
+
+                    status_html = '<span class="status-submitted">✓ Submitted</span>' if has_reviewed else ''
+                    card_html = (
+                        f'<div class="pcard-body">'
+                        f'<div class="pcard-top">'
+                        f'<div class="pcard-avatar" style="background-color: {bg_color}; color: {fg_color};">{initials}</div>'
+                        f'{status_html}'
+                        f'</div>'
+                        f'<div class="pcard-name" title="{s["name"]}">{s["name"]}</div>'
+                        f'<div class="pcard-reg"><span class="badge-reg">{reg}</span></div>'
+                        f'<div class="pcard-dept">{dept}</div>'
+                        f'</div>'
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+                    btn_text = "Edit Feedback" if has_reviewed else "Give Feedback"
+                    btn_kind = "secondary" if has_reviewed else "primary"
+                    if st.button(btn_text, key=f"s_card_btn_{s['id']}", type=btn_kind, use_container_width=True):
+                        st.session_state.active_target_person = s
+                        st.session_state.active_target_type = "student"
+                        st.session_state.user_nav = "Feedback Form"
+                        st.session_state.review_submitted = False
+                        st.rerun()
+
+    # Pagination controls
+    if total_pages > 1:
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        col_p_prev, col_p_info, col_p_next = st.columns([1, 2, 1], vertical_alignment="center")
+        with col_p_prev:
+            if st.button("← Previous", disabled=(current_page <= 1), use_container_width=True, key="s_prev_btn"):
+                st.session_state.student_page = current_page - 1
+                st.rerun()
+        with col_p_info:
+            st.markdown(f"<div style='text-align:center; font-size:0.85rem; color:#64748b;'>Page <strong>{current_page}</strong> of <strong>{total_pages}</strong> ({len(students)} total)</div>", unsafe_allow_html=True)
+        with col_p_next:
+            if st.button("Next →", disabled=(current_page >= total_pages), use_container_width=True, key="s_next_btn"):
+                st.session_state.student_page = current_page + 1
+                st.rerun()
+
+
+def render_teacher_directory(user):
+    """Teacher Directory with search, cards, and Give/Edit Feedback state."""
+    st.markdown("""
+    <div class="dir-header-box">
+        <div class="dir-title">Teacher Feedback</div>
+        <div class="dir-subtitle">Share feedback about faculty members.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_search, col_cnt = st.columns([3, 1], vertical_alignment="center")
+    with col_search:
+        search_query = st.text_input(
+            "Search by teacher name or department",
+            placeholder="Search by teacher name or department...",
+            label_visibility="collapsed",
+            key="t_dir_search_input"
+        )
+
+    teachers = database.list_people(
+        person_type="teacher",
+        active_only=True,
+        search_query=search_query
+    )
+
+    with col_cnt:
+        st.markdown(f"<div style='text-align:right; font-size:0.85rem; color:#64748b; font-weight:600;'>{len(teachers)} faculty members</div>", unsafe_allow_html=True)
+
+    if not teachers:
+        st.markdown("""
+        <div class="empty-state">
+            <div class="empty-state-icon">👨‍🏫</div>
+            <div class="empty-state-title">No Teachers Found</div>
+            <div class="empty-state-text">No active faculty members match your search criteria.</div>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+
+    user_reviews = database.get_user_reviewed_person_ids(user['id'])
+
+    for row_start in range(0, len(teachers), 3):
+        chunk = teachers[row_start : row_start + 3]
+        cols = st.columns(3)
+        for i, t in enumerate(chunk):
+            with cols[i]:
+                with st.container(border=True):
+                    has_reviewed = t['id'] in user_reviews
+                    bg_color, fg_color = get_avatar_style(t['name'])
+                    initials = get_initials(t['name'])
+                    dept = t.get('department') or 'Faculty'
+
+                    status_html = '<span class="status-submitted">✓ Submitted</span>' if has_reviewed else ''
+                    card_html = (
+                        f'<div class="pcard-body">'
+                        f'<div class="pcard-top">'
+                        f'<div class="pcard-avatar" style="background-color: {bg_color}; color: {fg_color};">{initials}</div>'
+                        f'{status_html}'
+                        f'</div>'
+                        f'<div class="pcard-name" title="{t["name"]}">{t["name"]}</div>'
+                        f'<div class="pcard-dept">{dept}</div>'
+                        f'</div>'
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+                    btn_text = "Edit Feedback" if has_reviewed else "Give Feedback"
+                    btn_kind = "secondary" if has_reviewed else "primary"
+                    if st.button(btn_text, key=f"t_card_btn_{t['id']}", type=btn_kind, use_container_width=True):
+                        st.session_state.active_target_person = t
+                        st.session_state.active_target_type = "teacher"
+                        st.session_state.user_nav = "Feedback Form"
+                        st.session_state.review_submitted = False
+                        st.rerun()
+
+
+def render_feedback_detail(user):
+    """Dedicated feedback submission screen with target card, privacy info, rating, and written comment."""
+    target = st.session_state.get("active_target_person")
+    target_type = st.session_state.get("active_target_type", "student")
+
+    if not target:
+        st.session_state.user_nav = "Students" if target_type == "student" else "Teachers"
+        st.rerun()
+        return
+
+    # Post-submission clean success state
+    if st.session_state.get("review_submitted"):
+        st.markdown("""
+        <div class="submission-success-card">
+            <div class="success-icon-badge">✓</div>
+            <div class="success-card-title">Feedback submitted successfully</div>
+            <div class="success-card-desc">Your feedback has been securely recorded.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            back_dest = "Students" if target_type == "student" else "Teachers"
+            if st.button(f"Back to {back_dest}", type="primary", use_container_width=True, key="succ_back_btn"):
+                st.session_state.user_nav = back_dest
+                st.session_state.active_target_person = None
+                st.session_state.review_submitted = False
+                st.rerun()
+        with col_s2:
+            if st.button("Submit Another Feedback", use_container_width=True, key="succ_another_btn"):
+                st.session_state.user_nav = "Students"
+                st.session_state.active_target_person = None
+                st.session_state.review_submitted = False
+                st.rerun()
+        return
+
+    # Main Feedback Form
+    st.markdown('<div class="feedback-container">', unsafe_allow_html=True)
+
+    back_text = "← Back to Students" if target_type == "student" else "← Back to Teachers"
+    if st.button(back_text, key="fback_nav_back"):
+        st.session_state.user_nav = "Students" if target_type == "student" else "Teachers"
+        st.session_state.active_target_person = None
+        st.rerun()
+
+    # Target Card
+    bg_color, fg_color = get_avatar_style(target['name'])
+    initials = get_initials(target['name'])
+    type_badge = '<span class="badge-student">Student</span>' if target_type == 'student' else '<span class="badge-teacher">Faculty</span>'
+    meta_info = f"Registration Number: <code>{target['registration_no']}</code>" if target.get('registration_no') else f"Department: {target.get('department')}"
+
+    st.markdown(f"""
+    <div class="target-profile-card">
+        <div class="target-avatar" style="background-color: {bg_color}; color: {fg_color};">{initials}</div>
+        <div class="target-info">
+            <div class="target-name-row">
+                <span class="target-name">{target['name']}</span>
+                {type_badge}
+            </div>
+            <div class="target-sub">{meta_info} • {target.get('department', '')}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Privacy Card
+    st.markdown("""
+    <div class="privacy-notice-card">
+        <div class="privacy-notice-icon">🔒</div>
+        <div>
+            <div class="privacy-notice-title">Private Feedback</div>
+            <div class="privacy-notice-desc">Your rating and written feedback are visible only to authorized administrators.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Existing review check (update policy)
+    existing_rev = database.get_user_review_for_person(user['id'], target['id'])
+    if existing_rev:
+        st.info("You have reviewed this person before. Submitting again will update your previous feedback.")
+        init_rating = int(existing_rev['rating'])
+        init_comment = str(existing_rev['review_text'])
+        submit_btn_text = "Update Feedback"
+    else:
+        init_rating = 5
+        init_comment = ""
+        submit_btn_text = "Submit Feedback"
+
+    with st.form("feedback_submission_form"):
+        st.markdown("**Overall Rating**")
+        rating_labels = {
+            1: "1 — Poor",
+            2: "2 — Fair",
+            3: "3 — Good",
+            4: "4 — Very Good",
+            5: "5 — Excellent"
+        }
+        rating = st.select_slider(
+            "Overall Rating",
+            options=[1, 2, 3, 4, 5],
+            value=init_rating,
+            format_func=lambda x: f"{rating_stars(x)}  {rating_labels[x]}",
+            label_visibility="collapsed"
+        )
+
+        st.markdown("<div style='height: 0.75rem;'></div>", unsafe_allow_html=True)
+        st.markdown("**Written Feedback**")
+        comment = st.text_area(
+            "Written Feedback",
+            value=init_comment,
+            placeholder="Share specific, constructive, and respectful feedback...",
+            height=130,
+            label_visibility="collapsed"
+        )
+
+        st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
+        col_sub, col_can = st.columns([1.5, 1])
+        with col_sub:
+            submit_clicked = st.form_submit_button(submit_btn_text, type="primary", use_container_width=True)
+        with col_can:
+            cancel_clicked = st.form_submit_button("Cancel", use_container_width=True)
+
+    if cancel_clicked:
+        st.session_state.user_nav = "Students" if target_type == "student" else "Teachers"
+        st.session_state.active_target_person = None
+        st.rerun()
+
+    if submit_clicked:
+        if not comment.strip():
+            st.error("Please provide written feedback before submitting.")
+        else:
+            try:
+                database.submit_or_update_review(
+                    reviewer_id=user['id'],
+                    person_id=target['id'],
+                    rating=int(rating),
+                    review_text=comment.strip()
+                )
+                st.session_state.review_submitted = True
+                st.rerun()
+            except ValueError as err:
+                st.error(str(err))
+            except Exception as err:
+                st.error(f"Failed to submit feedback: {err}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+def render_my_profile(user):
+    """User profile credentials and security password change."""
+    st.markdown("""
+    <div class="dir-header-box">
+        <div class="dir-title">My Profile</div>
+        <div class="dir-subtitle">Manage your verified identity and security credentials.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_p1, col_p2 = st.columns([1.2, 1], gap="large")
+
+    with col_p1:
+        reg_display = user.get('registration_no') or 'Not Linked'
+        created_str = format_datetime(user.get('created_at'))
+
+        st.markdown(f"""
+        <div class="ui-card">
+            <div class="ui-card-header">Account Profile</div>
+            <div class="ui-card-sub">Your registered credentials in the institutional feedback directory.</div>
+            <div style="font-size:0.92rem; color:#334155; line-height:2;">
+                <div><strong>Full Name:</strong> {user['name']}</div>
+                <div><strong>Username:</strong> @{user['username']}</div>
+                <div><strong>Email:</strong> {user['email']}</div>
+                <div><strong>Registration Number:</strong> <code>{reg_display}</code></div>
+                <div><strong>Account Type:</strong> <span class="badge badge-user">{user['role'].title()}</span></div>
+                <div><strong>Account Created:</strong> {created_str}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_p2:
+        st.markdown("""
+        <div class="ui-card">
+            <div class="ui-card-header">Change Password</div>
+            <div class="ui-card-sub">Update your account login password.</div>
+        """, unsafe_allow_html=True)
+
+        with st.form("change_password_form"):
+            current_pw = st.text_input("Current Password", type="password")
+            new_pw = st.text_input("New Password (min 8 chars)", type="password")
+            confirm_pw = st.text_input("Confirm New Password", type="password")
+            change_btn = st.form_submit_button("Update Password", type="primary", use_container_width=True)
+
+        if change_btn:
+            if new_pw != confirm_pw:
+                st.error("New passwords do not match.")
+            elif len(new_pw) < 8:
+                st.error("New password must be at least 8 characters long.")
+            else:
+                try:
+                    auth.change_user_password(user['id'], current_pw, new_pw)
+                    st.success("Your password has been updated successfully!")
+                except ValueError as err:
+                    st.error(str(err))
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_user_dashboard(user):
+    """Main controller for regular user portal."""
     if st.session_state.get("new_account_created"):
         st.success("✓ Account created successfully. You are now signed in.")
         st.session_state.new_account_created = False
 
-    # Sidebar App-Shell
-    with st.sidebar:
-        st.markdown("### 🎓 SFMS Portal")
-        st.caption("Student Feedback System")
-        st.divider()
+    render_user_navbar(user)
 
-        user_nav = st.radio(
-            "Navigation",
-            ["✍️ Give Review", "👤 My Profile", "🚪 Logout"],
-            index=0 if st.session_state.user_active_tab in ("Give Review", "Give Feedback") else 1
-        )
+    current_nav = st.session_state.get("user_nav", "Home")
 
-        if user_nav == "🚪 Logout":
-            st.session_state.user = None
-            st.session_state.review_submitted = False
-            st.rerun()
-
-        st.session_state.user_active_tab = "Give Review" if "Give" in user_nav else "My Profile"
-
-        st.divider()
-        st.markdown("**Logged in as:**")
-        st.markdown(f"**{user['name']}**")
-        st.caption(f"@{user['username']}")
-        if user.get('registration_no'):
-            st.markdown(f"<span class='badge badge-student'>{user['registration_no']}</span>", unsafe_allow_html=True)
-        else:
-            st.markdown("<span class='badge badge-user'>Standard Account</span>", unsafe_allow_html=True)
-
-    # PAGE: GIVE FEEDBACK
-    if st.session_state.user_active_tab in ("Give Review", "Give Feedback"):
-        st.markdown("## Give Feedback")
-        st.caption("Share constructive feedback for a student or teacher.")
-
-        # Post-submission Clean Success State
-        if st.session_state.review_submitted:
-            st.markdown("""
-            <div class="success-banner">
-                <div class="success-banner-title">✓ Review submitted successfully</div>
-                <div class="success-banner-sub">Thank you for sharing your feedback.</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("➕ Submit Another Review", type="primary"):
-                st.session_state.review_submitted = False
-                st.rerun()
-            return
-
-        # Main Feedback Form Container with Guided Step Flow
-        _, col_center, _ = st.columns([0.08, 0.84, 0.08])
-        with col_center:
-            st.markdown('<div class="guided-step-card">', unsafe_allow_html=True)
-
-            # STEP 1: Choose Review Type
-            st.markdown("""
-            <div class="step-header">
-                <span class="step-num">1</span>
-                <span class="step-title">Choose Student / Teacher</span>
-            </div>
-            <div class="step-desc">Select whether you would like to evaluate a student peer or a faculty teacher.</div>
-            """, unsafe_allow_html=True)
-
-            review_type_choice = st.radio(
-                "Review Type",
-                ["Student", "Teacher"],
-                horizontal=True,
-                help="Select whether you are submitting peer feedback for a student or teacher evaluation."
-            )
-            person_type = review_type_choice.lower()
-
-            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
-
-            # STEP 2: Select Person (Self-review prevention included)
-            eligible_people = database.list_people(
-                person_type=person_type,
-                active_only=True,
-                exclude_user_id=user['id'],
-                exclude_name=user['name'],
-                exclude_regno=user.get('registration_no')
-            )
-
-            if not eligible_people:
-                st.markdown(f"""
-                <div class="empty-state">
-                    <div class="empty-state-icon">📋</div>
-                    <div class="empty-state-title">No Active {review_type_choice}s Available</div>
-                    <div class="empty-state-text">There are currently no other active {person_type}s available to evaluate.</div>
-                </div>
-                </div>
-                """, unsafe_allow_html=True)
-                return
-
-            st.markdown("""
-            <div class="step-header">
-                <span class="step-num">2</span>
-                <span class="step-title">Select Person</span>
-            </div>
-            <div class="step-desc">Search by name or registration number from the verified directory.</div>
-            """, unsafe_allow_html=True)
-
-            if person_type == "student":
-                people_options = {
-                    f"{p['name']} — {p.get('registration_no') or 'N/A'}": p
-                    for p in eligible_people
-                }
-                dropdown_label = "Student Directory (Name — Registration Number)"
-            else:
-                people_options = {
-                    f"{p['name']} — {p['department']}": p
-                    for p in eligible_people
-                }
-                dropdown_label = "Teacher Directory (Name — Department)"
-
-            selected_label = st.selectbox(dropdown_label, options=list(people_options.keys()))
-            selected_person = people_options[selected_label]
-
-            # Duplicate review check: seamless update policy
-            existing_review = database.get_user_review_for_person(user['id'], selected_person['id'])
-            if existing_review:
-                st.info(
-                    "You have already reviewed this person. Your existing review can be updated."
-                )
-                initial_rating = int(existing_review['rating'])
-                initial_comment = str(existing_review['review_text'])
-                submit_label = "Update Review"
-            else:
-                initial_rating = 5
-                initial_comment = ""
-                submit_label = "Submit Review"
-
-            st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
-
-            with st.form("give_review_form"):
-                # STEP 3: Rating (1 to 5 Stars with clear labels)
-                st.markdown("""
-                <div class="step-header">
-                    <span class="step-num">3</span>
-                    <span class="step-title">Rate</span>
-                </div>
-                <div class="step-desc">Select an objective rating reflecting your evaluation.</div>
-                """, unsafe_allow_html=True)
-
-                rating = st.select_slider(
-                    "Rating Scale",
-                    options=[1, 2, 3, 4, 5],
-                    value=initial_rating,
-                    format_func=rating_stars_label
-                )
-
-                st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
-
-                # STEP 4: Review text area
-                st.markdown("""
-                <div class="step-header">
-                    <span class="step-num">4</span>
-                    <span class="step-title">Write Feedback</span>
-                </div>
-                <div class="step-desc">Provide detailed, constructive, and respectful observations.</div>
-                """, unsafe_allow_html=True)
-
-                comment = st.text_area(
-                    "Review / Comments",
-                    value=initial_comment,
-                    placeholder="Share constructive and respectful feedback...",
-                    height=130
-                )
-
-                st.markdown("<hr style='border:none; border-top:1px solid #f1f5f9; margin:1.25rem 0;'>", unsafe_allow_html=True)
-
-                # STEP 5: Submit
-                st.markdown("""
-                <div class="step-header">
-                    <span class="step-num">5</span>
-                    <span class="step-title">Submit</span>
-                </div>
-                <div class="step-desc">Send your confidential evaluation securely to the administrative portal.</div>
-                """, unsafe_allow_html=True)
-
-                submit_btn = st.form_submit_button(submit_label, type="primary", use_container_width=True)
-
-            if submit_btn:
-                if not comment.strip():
-                    st.error("Please provide written feedback before submitting.")
-                else:
-                    try:
-                        database.submit_or_update_review(
-                            reviewer_id=user['id'],
-                            person_id=selected_person['id'],
-                            rating=int(rating),
-                            review_text=comment.strip()
-                        )
-                        st.session_state.review_submitted = True
-                        st.rerun()
-                    except ValueError as val_err:
-                        st.error(str(val_err))
-                    except Exception as err:
-                        st.error(f"Failed to submit review: {err}")
-
-            st.markdown("</div>", unsafe_allow_html=True)
-
-    # PAGE: MY PROFILE
-    elif st.session_state.user_active_tab == "My Profile":
-        st.markdown("## My Profile")
-        st.caption("Manage your verified identity and security credentials.")
-
-        col_p1, col_p2 = st.columns([1.2, 1], gap="large")
-
-        with col_p1:
-            reg_display = user.get('registration_no') or 'Not Linked'
-            created_str = format_datetime(user.get('created_at'))
-
-            st.markdown(f"""
-            <div class="ui-card">
-                <div class="ui-card-header">Account Profile</div>
-                <div class="ui-card-sub">Your registered credentials in the institutional feedback directory.</div>
-                <div style="font-size:0.92rem; color:#334155; line-height:2;">
-                    <div><strong>Full Name:</strong> {user['name']}</div>
-                    <div><strong>Username:</strong> @{user['username']}</div>
-                    <div><strong>Email:</strong> {user['email']}</div>
-                    <div><strong>Registration Number:</strong> <code>{reg_display}</code></div>
-                    <div><strong>Account Role:</strong> <span class="badge badge-user">{user['role'].title()}</span></div>
-                    <div><strong>Account Created Date:</strong> {created_str}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col_p2:
-            st.markdown("""
-            <div class="ui-card">
-                <div class="ui-card-header">Security & Password</div>
-                <div class="ui-card-sub">Update your account login password.</div>
-            """, unsafe_allow_html=True)
-
-            with st.form("change_password_form"):
-                current_pw = st.text_input("Current Password", type="password")
-                new_pw = st.text_input("New Password (min 8 chars)", type="password")
-                confirm_pw = st.text_input("Confirm New Password", type="password")
-                change_btn = st.form_submit_button("Update Password", type="primary", use_container_width=True)
-
-            if change_btn:
-                if new_pw != confirm_pw:
-                    st.error("New passwords do not match.")
-                elif len(new_pw) < 8:
-                    st.error("New password must be at least 8 characters long.")
-                else:
-                    try:
-                        auth.change_user_password(user['id'], current_pw, new_pw)
-                        st.success("Your password has been updated successfully!")
-                    except ValueError as err:
-                        st.error(str(err))
-
-            st.markdown("</div>", unsafe_allow_html=True)
+    if current_nav == "Home":
+        render_user_home(user)
+    elif current_nav == "Students":
+        render_student_directory(user)
+    elif current_nav == "Teachers":
+        render_teacher_directory(user)
+    elif current_nav == "Feedback Form":
+        render_feedback_detail(user)
+    elif current_nav == "My Profile":
+        render_my_profile(user)
+    else:
+        render_user_home(user)
 
 
 # ==============================================================================
 # VIEW 3: ADMINISTRATOR DASHBOARD
 # ==============================================================================
 def render_admin_dashboard(user):
+    """Administrator Portal with sidebar navigation."""
     with st.sidebar:
         st.markdown("### 🛡️ Admin Portal")
         st.caption("Institutional Review Administration")
         st.divider()
 
+        admin_options = ["📊 Overview", "📝 Reviews", "🎓 Students", "👨‍🏫 Teachers", "👤 Users", "📥 Export", "🚪 Logout"]
+
+        current_tab = st.session_state.get("admin_active_tab", "Overview")
+        if current_tab in ("Dashboard", "Overview"):
+            default_idx = 0
+        elif current_tab == "Reviews":
+            default_idx = 1
+        elif current_tab in ("Students", "Manage People"):
+            default_idx = 2
+        elif current_tab == "Teachers":
+            default_idx = 3
+        elif current_tab == "Users":
+            default_idx = 4
+        elif current_tab == "Export":
+            default_idx = 5
+        else:
+            default_idx = 0
+
         nav_choice = st.radio(
-            "Navigation",
-            ["📊 Dashboard", "📝 Reviews", "👥 Manage People", "👤 Users", "📥 Export", "🚪 Logout"],
-            index=["Dashboard", "Reviews", "Manage People", "Users", "Export", "Logout"].index(st.session_state.admin_active_tab)
-            if st.session_state.admin_active_tab in ["Dashboard", "Reviews", "Manage People", "Users", "Export"] else 0
+            "Admin Navigation",
+            admin_options,
+            index=default_idx
         )
 
         clean_nav = nav_choice.split(" ", 1)[-1]
         if clean_nav == "Logout":
             st.session_state.user = None
+            st.session_state.admin_active_tab = "Overview"
             st.rerun()
 
         st.session_state.admin_active_tab = clean_nav
@@ -1168,11 +1763,11 @@ def render_admin_dashboard(user):
     current_page = st.session_state.admin_active_tab
 
     # --------------------------------------------------------------------------
-    # 1. ADMIN DASHBOARD (Home & KPI Overview)
+    # 1. ADMIN OVERVIEW (KPIs & Visual Analytics)
     # --------------------------------------------------------------------------
-    if current_page == "Dashboard":
+    if current_page in ("Overview", "Dashboard"):
         st.markdown("## Admin Dashboard")
-        st.caption("Monitor feedback activity and manage the review system.")
+        st.caption("Monitor feedback activity and manage institutional evaluation metrics.")
         st.subheader("Administrative Dashboard", divider=False)
 
         kpis = database.get_kpis()
@@ -1208,7 +1803,6 @@ def render_admin_dashboard(user):
         </div>
         """, unsafe_allow_html=True)
 
-        # Visual Analytics
         col_c1, col_c2 = st.columns(2, gap="large")
 
         with col_c1:
@@ -1229,7 +1823,6 @@ def render_admin_dashboard(user):
 
         st.divider()
 
-        # Recent Feedback Activity & Top Reviewed People
         col_act1, col_act2 = st.columns([1.2, 1], gap="large")
 
         with col_act1:
@@ -1291,7 +1884,6 @@ def render_admin_dashboard(user):
         st.markdown("## Reviews Management")
         st.caption("Inspect, filter, search, read in full, or moderate inappropriate reviews.")
 
-        # Top Filter Bar
         with st.container():
             f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns([1.2, 1.2, 1, 1.1, 0.9])
 
@@ -1354,7 +1946,6 @@ def render_admin_dashboard(user):
             )
             st.session_state.rf_search = search_text
 
-        # Execute filtered query
         type_arg = filter_type.lower() if filter_type != "All" else None
         date_arg = custom_date_str if selected_date == "Custom Date" else selected_date
 
@@ -1383,7 +1974,6 @@ def render_admin_dashboard(user):
                 if r['reviewed_person_type'] == 'student' and r.get('reviewed_person_regno'):
                     target_desc += f" ({r['reviewed_person_regno']})"
 
-                # Truncate long reviews in table
                 raw_text = r['review_text'] or ""
                 trunc_text = (raw_text[:75] + "...") if len(raw_text) > 75 else raw_text
 
@@ -1406,7 +1996,6 @@ def render_admin_dashboard(user):
 
             st.divider()
 
-            # View Complete Review & Delete Inappropriate Review
             col_v1, col_v2 = st.columns([1.3, 1], gap="large")
 
             review_map = {
@@ -1463,22 +2052,15 @@ def render_admin_dashboard(user):
                             st.error("Failed to delete review. Please try again.")
 
     # --------------------------------------------------------------------------
-    # 3. ADMIN MANAGE PEOPLE & PERSON DETAIL VIEW
+    # 3. ADMIN STUDENTS MANAGEMENT
     # --------------------------------------------------------------------------
-    elif current_page == "Manage People":
-        st.markdown("## Manage People")
-        st.caption("Manage students and faculty, inspect detailed reviews dossier, and toggle active status.")
+    elif current_page in ("Students", "Manage People"):
+        st.markdown("## Students Management")
+        st.caption("Manage students directory, inspect detailed feedback dossiers, toggle active status, and add new students.")
 
-        tab_students, tab_teachers, tab_add_student, tab_add_teacher = st.tabs([
-            "🎓 Student Directory & Analytics",
-            "👨‍🏫 Faculty Directory",
-            "➕ Add Student",
-            "➕ Add Teacher"
-        ])
+        tab_st_dir, tab_st_add = st.tabs(["🎓 Student Directory & Dossier", "➕ Add Student"])
 
-        # TAB 1: STUDENTS
-        with tab_students:
-            st.markdown("##### Search Student Directory")
+        with tab_st_dir:
             col_s1, col_s2 = st.columns([2, 1])
             with col_s1:
                 st_search = st.text_input(
@@ -1486,7 +2068,7 @@ def render_admin_dashboard(user):
                     placeholder="e.g. AMIT or 23BCON0028"
                 )
             with col_s2:
-                st_filter = st.selectbox("Status Filter", ["All", "Active Only", "Inactive Only"])
+                st_filter = st.selectbox("Status Filter", ["All", "Active Only", "Inactive Only"], key="st_stat_filter")
 
             students_data = database.get_students_summary(search_query=st_search)
             if st_filter == "Active Only":
@@ -1515,7 +2097,6 @@ def render_admin_dashboard(user):
 
                 st.divider()
 
-                # PERSON DETAIL VIEW: STUDENT
                 st.markdown("### 📋 Student Dossier & Reviews Received")
                 st_picker_map = {
                     f"{s['student_name']} — {s['registration_no'] or 'N/A'} ({s['total_reviews']} reviews)": s['student_id']
@@ -1526,7 +2107,6 @@ def render_admin_dashboard(user):
 
                 dossier = database.get_person_detail(chosen_st_id)
                 if dossier:
-                    # Header metrics
                     col_d1, col_d2, col_d3 = st.columns([1.5, 1, 1])
                     with col_d1:
                         st.markdown(f"**Name:** {dossier['name']}")
@@ -1545,7 +2125,6 @@ def render_admin_dashboard(user):
                             count = dossier['breakdown'].get(star_num, 0)
                             st.write(f"{star_num} ★ : **{count}**")
 
-                    # Status toggle & edit
                     col_btn, col_edit = st.columns([1, 1])
                     with col_btn:
                         btn_txt = "Deactivate Student" if dossier['active'] else "Activate Student"
@@ -1576,7 +2155,6 @@ def render_admin_dashboard(user):
                                 except ValueError as err:
                                     st.error(str(err))
 
-                    # Reviews Received List
                     st.markdown("##### Reviews Received")
                     if dossier['reviews']:
                         for rev in dossier['reviews']:
@@ -1593,9 +2171,37 @@ def render_admin_dashboard(user):
                     else:
                         st.info("No reviews have been submitted for this student yet.")
 
-        # TAB 2: TEACHERS
-        with tab_teachers:
-            st.markdown("##### Search Faculty Directory")
+        with tab_st_add:
+            st.markdown("##### Add Student to Directory")
+            with st.form("add_student_form", clear_on_submit=True):
+                new_s_name = st.text_input("Student Name", placeholder="e.g. PRIYANKA SANGWA")
+                new_s_reg = st.text_input("Registration Number", placeholder="e.g. 23BCON1710")
+                new_s_dept = st.text_input("Department / Program", value="Computer Science & Engineering")
+                submit_add_s = st.form_submit_button("Add Student", type="primary", use_container_width=True)
+
+            if submit_add_s:
+                try:
+                    database.add_person(
+                        name=new_s_name,
+                        person_type='student',
+                        department=new_s_dept,
+                        registration_no=new_s_reg.strip() if new_s_reg else None
+                    )
+                    st.success(f"Student '{new_s_name}' ({new_s_reg}) added successfully!")
+                    st.rerun()
+                except ValueError as err:
+                    st.error(str(err))
+
+    # --------------------------------------------------------------------------
+    # 4. ADMIN TEACHERS MANAGEMENT
+    # --------------------------------------------------------------------------
+    elif current_page == "Teachers":
+        st.markdown("## Faculty & Teachers Management")
+        st.caption("Manage faculty members, inspect feedback dossiers, toggle active status, and add new teachers.")
+
+        tab_t_dir, tab_t_add = st.tabs(["👨‍🏫 Faculty Directory & Dossier", "➕ Add Teacher"])
+
+        with tab_t_dir:
             col_t1, col_t2 = st.columns([2, 1])
             with col_t1:
                 t_search = st.text_input("Search faculty by Name or Department", placeholder="e.g. Computer Science")
@@ -1612,7 +2218,7 @@ def render_admin_dashboard(user):
                 st.markdown("""
                 <div class="empty-state">
                     <div class="empty-state-icon">👨‍🏫</div>
-                    <div class="empty-state-title">No Teacher Reviews Found</div>
+                    <div class="empty-state-title">No Faculty Found</div>
                     <div class="empty-state-text">No faculty members match your criteria. Add teachers using the Add Teacher tab.</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -1628,7 +2234,6 @@ def render_admin_dashboard(user):
 
                 st.divider()
 
-                # PERSON DETAIL VIEW: TEACHER
                 st.markdown("### 📋 Faculty Dossier & Reviews Received")
                 t_picker_map = {
                     f"{t['teacher_name']} — {t['department']} ({t['total_reviews']} reviews)": t['teacher_id']
@@ -1700,30 +2305,7 @@ def render_admin_dashboard(user):
                     else:
                         st.info("No reviews have been submitted for this teacher yet.")
 
-        # TAB 3: ADD STUDENT
-        with tab_add_student:
-            st.markdown("##### Add Student to Directory")
-            with st.form("add_student_form", clear_on_submit=True):
-                new_s_name = st.text_input("Student Name", placeholder="e.g. PRIYANKA SANGWA")
-                new_s_reg = st.text_input("Registration Number", placeholder="e.g. 23BCON1710")
-                new_s_dept = st.text_input("Department / Program", value="Computer Science & Engineering")
-                submit_add_s = st.form_submit_button("Add Student", type="primary", use_container_width=True)
-
-            if submit_add_s:
-                try:
-                    database.add_person(
-                        name=new_s_name,
-                        person_type='student',
-                        department=new_s_dept,
-                        registration_no=new_s_reg.strip() if new_s_reg else None
-                    )
-                    st.success(f"Student '{new_s_name}' ({new_s_reg}) added successfully!")
-                    st.rerun()
-                except ValueError as err:
-                    st.error(str(err))
-
-        # TAB 4: ADD TEACHER
-        with tab_add_teacher:
+        with tab_t_add:
             st.markdown("##### Add Faculty / Teacher")
             with st.form("add_teacher_form", clear_on_submit=True):
                 new_t_name = st.text_input("Teacher Name", placeholder="e.g. Dr. Robert Miller")
@@ -1743,7 +2325,7 @@ def render_admin_dashboard(user):
                     st.error(str(err))
 
     # --------------------------------------------------------------------------
-    # 4. ADMIN USERS DIRECTORY
+    # 5. ADMIN USERS DIRECTORY
     # --------------------------------------------------------------------------
     elif current_page == "Users":
         st.markdown("## Registered Accounts")
@@ -1781,7 +2363,7 @@ def render_admin_dashboard(user):
             st.dataframe(pd.DataFrame(user_rows), hide_index=True, use_container_width=True)
 
     # --------------------------------------------------------------------------
-    # 5. ADMIN EXPORT DATA
+    # 6. ADMIN EXPORT DATA
     # --------------------------------------------------------------------------
     elif current_page == "Export":
         st.markdown("## Export Data to CSV")
@@ -1789,7 +2371,6 @@ def render_admin_dashboard(user):
 
         col_e1, col_e2 = st.columns(2, gap="large")
 
-        # EXPORT REVIEWS
         with col_e1:
             st.markdown("""
             <div class="ui-card">
@@ -1842,7 +2423,6 @@ def render_admin_dashboard(user):
 
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # EXPORT PEOPLE DIRECTORY
         with col_e2:
             st.markdown("""
             <div class="ui-card">

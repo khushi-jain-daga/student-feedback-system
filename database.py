@@ -913,6 +913,33 @@ def count_user_reviews(reviewer_id: int) -> int:
     return row['cnt'] if row else 0
 
 
+def get_user_reviewed_person_ids(reviewer_id: int) -> Dict[int, Dict[str, Any]]:
+    """Retrieve mapping of person_id -> review details for all reviews submitted by reviewer."""
+    rows = fetch_all(
+        'SELECT person_id, rating, review_text, updated_at FROM reviews WHERE reviewer_id = ?',
+        (reviewer_id,)
+    )
+    return {r['person_id']: r for r in rows}
+
+
+def count_user_reviews_by_type(reviewer_id: int) -> Dict[str, int]:
+    """Count how many student and teacher reviews a user has submitted."""
+    query = '''
+    SELECT LOWER(p.type) AS person_type, COUNT(r.id) AS cnt
+    FROM reviews r
+    JOIN people p ON r.person_id = p.id
+    WHERE r.reviewer_id = ?
+    GROUP BY LOWER(p.type)
+    '''
+    rows = fetch_all(query, (reviewer_id,))
+    counts = {'student': 0, 'teacher': 0}
+    for r in rows:
+        ptype = r['person_type']
+        if ptype in counts:
+            counts[ptype] = r['cnt']
+    return counts
+
+
 def fetch_admin_reviews(
     person_type: Optional[str] = None,
     person_name: Optional[str] = None,
