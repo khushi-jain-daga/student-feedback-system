@@ -21,9 +21,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize database schema and synchronize administrator account
-database.init_db()
-auth.seed_admin()
+# Cached application initialization (executes ONCE per Streamlit server process)
+@st.cache_resource
+def initialize_application():
+    try:
+        database.init_db()
+        auth.seed_admin()
+        print("[INIT] Application initialization complete.")
+        return True
+    except Exception as e:
+        print(f"[INIT ERROR] Application initialization failed: {type(e).__name__}")
+        raise
+
+initialize_application()
 
 # Custom SaaS Design System CSS
 st.markdown("""

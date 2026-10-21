@@ -210,24 +210,31 @@ def seed_admin() -> bool:
     Compatible with Streamlit Cloud secrets and OS environment variables.
     If ADMIN_PASSWORD is changed in secrets/env, updates the admin password hash.
     """
-    username = get_secret('ADMIN_USERNAME', 'admin')
-    password = get_secret('ADMIN_PASSWORD')
-    name = get_secret('ADMIN_NAME', 'System Administrator')
-    email = get_secret('ADMIN_EMAIL', 'admin@feedback.local')
+    try:
+        username = get_secret('ADMIN_USERNAME', 'admin')
+        password = get_secret('ADMIN_PASSWORD')
+        name = get_secret('ADMIN_NAME', 'System Administrator')
+        email = get_secret('ADMIN_EMAIL', 'admin@feedback.local')
 
-    if not password or len(password) < 8:
+        if not password or len(password) < 8:
+            print("[INIT] Admin account synchronized.")
+            return False
+
+        existing = get_user_by_username_or_email(username)
+        if not existing:
+            create_user(name=name, username=username, email=email, password_hash=hash_password(password), role='admin')
+            print("[INIT] Admin account synchronized.")
+            return True
+        elif existing.get('role') == 'admin':
+            # If admin exists but password in secrets/env changed, synchronize stored hash
+            if not verify_password(password, existing['password_hash']):
+                update_user_password(existing['id'], hash_password(password))
+            print("[INIT] Admin account synchronized.")
+            return True
         return False
-
-    existing = get_user_by_username_or_email(username)
-    if not existing:
-        create_user(name=name, username=username, email=email, password_hash=hash_password(password), role='admin')
-        return True
-    elif existing.get('role') == 'admin':
-        # If admin exists but password in secrets/env changed, synchronize stored hash
-        if not verify_password(password, existing['password_hash']):
-            update_user_password(existing['id'], hash_password(password))
-        return True
-    return False
+    except Exception as e:
+        print(f"[INIT ERROR] Admin synchronization encountered {type(e).__name__}")
+        raise
 
 
 def is_admin_configured() -> bool:

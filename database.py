@@ -72,7 +72,11 @@ def get_connection():
         url = get_database_url()
         if url.startswith('postgres://'):
             url = url.replace('postgres://', 'postgresql://', 1)
-        conn = psycopg2.connect(url, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn = psycopg2.connect(
+            url,
+            cursor_factory=psycopg2.extras.RealDictCursor,
+            connect_timeout=10
+        )
         try:
             yield conn
         finally:
@@ -156,169 +160,198 @@ def fetch_one(query: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
 def init_db():
     """Create schema tables and indexes. Migrate legacy schema if needed."""
     engine = get_engine()
-    with get_connection() as conn:
-        cur = conn.cursor()
-        if engine == 'postgres':
-            cur.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                username VARCHAR(255) NOT NULL UNIQUE,
-                email VARCHAR(255) NOT NULL UNIQUE,
-                registration_no VARCHAR(100),
-                password_hash TEXT NOT NULL,
-                role VARCHAR(50) NOT NULL CHECK(role IN ('user', 'admin')),
-                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
+    print("[INIT] Starting database initialization...")
+    try:
+        with get_connection() as conn:
+            cur = conn.cursor()
+            if engine == 'postgres':
+                cur.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    username VARCHAR(255) NOT NULL UNIQUE,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    registration_no VARCHAR(100),
+                    password_hash TEXT NOT NULL,
+                    role VARCHAR(50) NOT NULL CHECK(role IN ('user', 'admin')),
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
 
-            CREATE TABLE IF NOT EXISTS people (
-                id SERIAL PRIMARY KEY,
-                name TEXT NOT NULL,
-                registration_no VARCHAR(100),
-                type VARCHAR(50) NOT NULL CHECK(type IN ('student', 'teacher')),
-                department TEXT NOT NULL,
-                active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
-                linked_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
-            );
+                CREATE TABLE IF NOT EXISTS people (
+                    id SERIAL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    registration_no VARCHAR(100),
+                    type VARCHAR(50) NOT NULL CHECK(type IN ('student', 'teacher')),
+                    department TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
+                    linked_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+                );
 
-            CREATE TABLE IF NOT EXISTS reviews (
-                id SERIAL PRIMARY KEY,
-                reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
-                rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-                review_text TEXT NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(reviewer_id, person_id)
-            );
+                CREATE TABLE IF NOT EXISTS reviews (
+                    id SERIAL PRIMARY KEY,
+                    reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+                    rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+                    review_text TEXT NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(reviewer_id, person_id)
+                );
 
-            CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
-            CREATE INDEX IF NOT EXISTS idx_reviews_person ON reviews(person_id);
-            CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
-            CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
-            CREATE INDEX IF NOT EXISTS idx_people_regno ON people(registration_no);
-            ''')
-            conn.commit()
-        else:
-            # SQLite DDL
-            conn.executescript('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                registration_no TEXT,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL CHECK(role IN ('user', 'admin', 'student')),
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
-
-            CREATE TABLE IF NOT EXISTS people (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                registration_no TEXT,
-                type TEXT NOT NULL CHECK(type IN ('student', 'teacher')),
-                department TEXT NOT NULL,
-                active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
-                linked_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS reviews (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
-                rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-                review_text TEXT NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(reviewer_id, person_id)
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
-            CREATE INDEX IF NOT EXISTS idx_reviews_person ON reviews(person_id);
-            CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
-            CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
-            ''')
-
-            # SQLite backward-compatibility migrations
-            try:
-                users_sql_row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
-                if users_sql_row and users_sql_row[0]:
-                    users_sql = users_sql_row[0]
-                    if "role IN ('student','admin')" in users_sql or "full_name" in users_sql:
-                        conn.execute("PRAGMA foreign_keys = OFF")
-                        conn.executescript('''
-                            CREATE TABLE IF NOT EXISTS users_v2 (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                name TEXT NOT NULL,
-                                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                                email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                                registration_no TEXT,
-                                password_hash TEXT NOT NULL,
-                                role TEXT NOT NULL CHECK(role IN ('user', 'admin')),
-                                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-                            );
-
-                            INSERT OR IGNORE INTO users_v2 (id, name, username, email, password_hash, role, created_at)
-                            SELECT id,
-                                   COALESCE(name, full_name, username),
-                                   username,
-                                   email,
-                                   password_hash,
-                                   CASE WHEN role = 'student' THEN 'user' ELSE role END,
-                                   created_at
-                            FROM users;
-
-                            DROP TABLE users;
-                            ALTER TABLE users_v2 RENAME TO users;
-                            CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-                            CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-                        ''')
-                        conn.execute("PRAGMA foreign_keys = ON")
-            except Exception:
-                pass
-
-            # Migration: Ensure registration_no column exists in people table
-            try:
-                p_cols = [r[1] for r in conn.execute('PRAGMA table_info(people)').fetchall()]
-                if 'registration_no' not in p_cols:
-                    conn.execute('ALTER TABLE people ADD COLUMN registration_no TEXT')
-                    conn.commit()
-                conn.execute('CREATE INDEX IF NOT EXISTS idx_people_regno ON people(registration_no)')
+                CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
+                CREATE INDEX IF NOT EXISTS idx_reviews_person ON reviews(person_id);
+                CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
+                CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
+                CREATE INDEX IF NOT EXISTS idx_people_regno ON people(registration_no);
+                ''')
                 conn.commit()
-            except Exception:
-                pass
+            else:
+                # SQLite DDL
+                conn.executescript('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                    registration_no TEXT,
+                    password_hash TEXT NOT NULL,
+                    role TEXT NOT NULL CHECK(role IN ('user', 'admin', 'student')),
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
 
-            # Migration: Ensure registration_no column exists in users table
-            try:
-                u_cols = [r[1] for r in conn.execute('PRAGMA table_info(users)').fetchall()]
-                if 'registration_no' not in u_cols:
-                    conn.execute('ALTER TABLE users ADD COLUMN registration_no TEXT')
+                CREATE TABLE IF NOT EXISTS people (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    registration_no TEXT,
+                    type TEXT NOT NULL CHECK(type IN ('student', 'teacher')),
+                    department TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
+                    linked_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS reviews (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+                    rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+                    review_text TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(reviewer_id, person_id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
+                CREATE INDEX IF NOT EXISTS idx_reviews_person ON reviews(person_id);
+                CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
+                CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
+                ''')
+
+                # SQLite backward-compatibility migrations
+                try:
+                    users_sql_row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+                    if users_sql_row and users_sql_row[0]:
+                        users_sql = users_sql_row[0]
+                        if "role IN ('student','admin')" in users_sql or "full_name" in users_sql:
+                            conn.execute("PRAGMA foreign_keys = OFF")
+                            conn.executescript('''
+                                CREATE TABLE IF NOT EXISTS users_v2 (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    name TEXT NOT NULL,
+                                    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                                    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                                    registration_no TEXT,
+                                    password_hash TEXT NOT NULL,
+                                    role TEXT NOT NULL CHECK(role IN ('user', 'admin')),
+                                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                );
+
+                                INSERT OR IGNORE INTO users_v2 (id, name, username, email, password_hash, role, created_at)
+                                SELECT id,
+                                       COALESCE(name, full_name, username),
+                                       username,
+                                       email,
+                                       password_hash,
+                                       CASE WHEN role = 'student' THEN 'user' ELSE role END,
+                                       created_at
+                                FROM users;
+
+                                DROP TABLE users;
+                                ALTER TABLE users_v2 RENAME TO users;
+                                CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+                                CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+                            ''')
+                            conn.execute("PRAGMA foreign_keys = ON")
+                except Exception:
+                    pass
+
+                # Migration: Ensure registration_no column exists in people table
+                try:
+                    p_cols = [r[1] for r in conn.execute('PRAGMA table_info(people)').fetchall()]
+                    if 'registration_no' not in p_cols:
+                        conn.execute('ALTER TABLE people ADD COLUMN registration_no TEXT')
+                        conn.commit()
+                    conn.execute('CREATE INDEX IF NOT EXISTS idx_people_regno ON people(registration_no)')
                     conn.commit()
-            except Exception:
-                pass
+                except Exception:
+                    pass
 
-    # Ensure baseline sample teachers exist
-    seed_initial_teachers()
+                # Migration: Ensure registration_no column exists in users table
+                try:
+                    u_cols = [r[1] for r in conn.execute('PRAGMA table_info(users)').fetchall()]
+                    if 'registration_no' not in u_cols:
+                        conn.execute('ALTER TABLE users ADD COLUMN registration_no TEXT')
+                        conn.commit()
+                except Exception:
+                    pass
 
-    # Import Master Student List from students_master.json
-    import_master_students()
+            conn.commit()
+            print("[INIT] Database schema ready.")
+
+            # Ensure baseline sample teachers exist using the SAME connection
+            seed_initial_teachers(conn)
+
+            # Import Master Student List from students_master.json using the SAME connection
+            import_master_students(conn)
+            print("[INIT] Master students synchronized.")
+    except Exception as e:
+        print(f"[INIT ERROR] Database initialization encountered {type(e).__name__}")
+        raise
 
 
-def seed_initial_teachers():
-    """Ensure baseline active faculty / teachers exist for demonstration."""
-    if count_people(person_type='teacher') == 0:
-        sample_teachers = [
-            ('Dr. Sharma', 'teacher', 'Computer Science & Engineering'),
-            ('Prof. Gupta', 'teacher', 'Mathematics & Data Science'),
-            ('Dr. Anita Roy', 'teacher', 'Electronics & Communication'),
-            ('Prof. Ramesh Verma', 'teacher', 'Mechanical Engineering')
-        ]
-        for name, p_type, dept in sample_teachers:
-            add_person(name=name, person_type=p_type, department=dept)
+def seed_initial_teachers(conn=None):
+    """Ensure baseline active faculty / teachers exist for demonstration using ONE connection."""
+    engine = get_engine()
+
+    def _do_seed(c):
+        cur = c.cursor()
+        sql_count = "SELECT COUNT(*) AS cnt FROM people WHERE LOWER(type) = 'teacher'"
+        cur.execute(sql_count)
+        row = cur.fetchone()
+        cnt = row['cnt'] if isinstance(row, dict) or hasattr(row, '__getitem__') else (row[0] if row else 0)
+        if cnt == 0:
+            sample_teachers = [
+                ('Dr. Sharma', 'teacher', 'Computer Science & Engineering'),
+                ('Prof. Gupta', 'teacher', 'Mathematics & Data Science'),
+                ('Dr. Anita Roy', 'teacher', 'Electronics & Communication'),
+                ('Prof. Ramesh Verma', 'teacher', 'Mechanical Engineering')
+            ]
+            sql_ins = (
+                "INSERT INTO people (name, type, department, active) VALUES (%s, %s, %s, 1)"
+                if engine == 'postgres'
+                else "INSERT INTO people (name, type, department, active) VALUES (?, ?, ?, 1)"
+            )
+            for name, p_type, dept in sample_teachers:
+                cur.execute(sql_ins, (name, p_type, dept))
+            c.commit()
+
+    if conn is not None:
+        _do_seed(conn)
+    else:
+        with get_connection() as c:
+            _do_seed(c)
 
 
-def import_master_students() -> int:
+def import_master_students(conn=None) -> int:
     """
     Import master students list from students_master.json into the people table.
     Sets:
@@ -326,6 +359,8 @@ def import_master_students() -> int:
       - registration_no = REGNO
       - type = 'student'
       - active = 1 (true)
+    Uses ONE connection and ONE cursor for the entire 62-student import.
+    Commits once after completing the loop.
     Does not import attendance-related columns.
     """
     json_path = Path(__file__).resolve().parent / 'students_master.json'
@@ -335,35 +370,55 @@ def import_master_students() -> int:
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             students = json.load(f)
-    except Exception:
+    except Exception as e:
+        print(f"[INIT] Notice: Could not read students_master.json: {type(e).__name__}")
         return 0
 
-    count = 0
     engine = get_engine()
-    for s in students:
-        reg = str(s.get('registration_no', '')).strip().upper()
-        name = str(s.get('name', '')).strip()
-        dept = str(s.get('department', 'Computer Science & Engineering')).strip()
-        if not reg or not name:
-            continue
 
-        existing = fetch_one(
-            'SELECT id FROM people WHERE type = ? AND UPPER(registration_no) = ?',
-            ('student', reg)
+    def _do_import(c) -> int:
+        cur = c.cursor()
+        count = 0
+        sel_sql = (
+            'SELECT id FROM people WHERE type = %s AND UPPER(registration_no) = %s'
+            if engine == 'postgres'
+            else 'SELECT id FROM people WHERE type = ? AND UPPER(registration_no) = ?'
         )
-        if existing:
-            execute_query(
-                'UPDATE people SET name = ?, department = ?, active = 1 WHERE id = ?',
-                (name, dept, existing['id'])
-            )
-        else:
-            execute_query(
-                'INSERT INTO people (name, registration_no, type, department, active) VALUES (?, ?, ?, ?, 1)',
-                (name, reg, 'student', dept)
-            )
-            count += 1
+        upd_sql = (
+            'UPDATE people SET name = %s, department = %s, active = 1 WHERE id = %s'
+            if engine == 'postgres'
+            else 'UPDATE people SET name = ?, department = ?, active = 1 WHERE id = ?'
+        )
+        ins_sql = (
+            'INSERT INTO people (name, registration_no, type, department, active) VALUES (%s, %s, %s, %s, 1)'
+            if engine == 'postgres'
+            else 'INSERT INTO people (name, registration_no, type, department, active) VALUES (?, ?, ?, ?, 1)'
+        )
 
-    return count
+        for s in students:
+            reg = str(s.get('registration_no', '')).strip().upper()
+            name = str(s.get('name', '')).strip()
+            dept = str(s.get('department', 'Computer Science & Engineering')).strip()
+            if not reg or not name:
+                continue
+
+            cur.execute(sel_sql, ('student', reg))
+            row = cur.fetchone()
+            if row:
+                pid = row['id'] if isinstance(row, dict) or hasattr(row, '__getitem__') else row[0]
+                cur.execute(upd_sql, (name, dept, pid))
+            else:
+                cur.execute(ins_sql, (name, reg, 'student', dept))
+                count += 1
+
+        c.commit()
+        return count
+
+    if conn is not None:
+        return _do_import(conn)
+    else:
+        with get_connection() as c:
+            return _do_import(c)
 
 
 # ------------------------------------------------------------------------------
