@@ -46,6 +46,34 @@ class StreamlitAppTests(unittest.TestCase):
         self.assertIn("Create Account", tab_labels)
         self.assertEqual(len(at.dataframe), 0)
 
+        input_labels = [i.label for i in at.text_input]
+        self.assertIn("Username, Email or Registration Number", input_labels)
+
+    def test_auth_flash_message_and_login_error(self):
+        """Verify registration flash message displays on Sign In tab, and login error is exact."""
+        # 1. Test flash message
+        at = create_app_test()
+        at.session_state.auth_flash_success = True
+        at.run()
+        self.assertFalse(at.exception)
+        success_texts = [s.value for s in at.success]
+        self.assertTrue(any("Account created successfully" in s for s in success_texts))
+        self.assertTrue(any("registration number" in s for s in success_texts))
+
+        # 2. Test failed login error
+        at_login = create_app_test()
+        at_login.run()
+        login_inputs = [i for i in at_login.text_input if "Registration Number" in i.label]
+        self.assertGreaterEqual(len(login_inputs), 1)
+        login_input = login_inputs[0]
+        pass_input = [i for i in at_login.text_input if "Password" in i.label][0]
+        login_input.set_value("nonexistent_user")
+        pass_input.set_value("WrongPass@123")
+        at_login.button[0].click().run()
+        self.assertFalse(at_login.exception)
+        error_texts = [e.value for e in at_login.error]
+        self.assertIn("Account not found or password is incorrect.", error_texts)
+
     def test_user_dashboard_give_review(self):
         """Verify regular user sees Give Review, selects student/teacher, and cannot see other reviews."""
         at = create_app_test()

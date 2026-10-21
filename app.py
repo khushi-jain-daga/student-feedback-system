@@ -629,6 +629,9 @@ if "user" not in st.session_state:
 if "review_submitted" not in st.session_state:
     st.session_state.review_submitted = False
 
+if "auth_flash_success" not in st.session_state:
+    st.session_state.auth_flash_success = None
+
 if "admin_active_tab" not in st.session_state:
     st.session_state.admin_active_tab = "Dashboard"
 
@@ -754,16 +757,25 @@ def render_landing_page():
 
     with col_right:
         st.markdown('<div class="auth-container-card">', unsafe_allow_html=True)
+
+        # Persistent authentication flash message after registration
+        if st.session_state.get("auth_flash_success"):
+            st.success(
+                "✓ Account created successfully\n\n"
+                "You can now sign in using your username, email, or registration number."
+            )
+            st.session_state.auth_flash_success = None
+
         auth_tab_login, auth_tab_register = st.tabs(["Sign In", "Create Account"])
 
         # TAB 1: SIGN IN
         with auth_tab_login:
-            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in with your registered username or institutional email address.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in with your registered username, email address, or registration number.</div>', unsafe_allow_html=True)
 
             with st.form("login_form", clear_on_submit=False):
                 login_id = st.text_input(
-                    "Username or Email",
-                    placeholder="e.g. user@university.edu or username"
+                    "Username, Email or Registration Number",
+                    placeholder="e.g. user@university.edu, username, or 23BCON0028"
                 )
                 login_password = st.text_input(
                     "Password",
@@ -774,7 +786,7 @@ def render_landing_page():
 
             if submit_login:
                 if not login_id.strip() or not login_password:
-                    st.error("Please enter both your username/email and password.")
+                    st.error("Please enter both your identifier and password.")
                 else:
                     user_data = auth.authenticate(login_id.strip(), login_password)
                     if user_data:
@@ -782,7 +794,7 @@ def render_landing_page():
                         st.session_state.review_submitted = False
                         st.rerun()
                     else:
-                        st.error("Invalid username or password.")
+                        st.error("Account not found or password is incorrect.")
 
         # TAB 2: CREATE ACCOUNT
         with auth_tab_register:
@@ -813,7 +825,8 @@ def render_landing_page():
                             role='user',
                             registration_no=reg_no.strip() if reg_no else None
                         )
-                        st.success("Account created successfully! You can now log in using the 'Sign In' tab.")
+                        st.session_state.auth_flash_success = True
+                        st.rerun()
                     except ValueError as err:
                         st.error(str(err))
                     except Exception as err:

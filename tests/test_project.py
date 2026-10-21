@@ -77,6 +77,68 @@ class ProjectTests(unittest.TestCase):
                 registration_no="23BCON9999"
             )
 
+    def test_complete_authentication_flow(self):
+        """Test complete authentication flow:
+        - Register student -> success confirmation
+        - Login using username
+        - Login using email
+        - Login using registration number
+        - Wrong password -> rejected
+        - Duplicate registration number -> rejected
+        - Account verification in database
+        """
+        # Step 1: Register student with registration number
+        user_id = auth.register_user(
+            name="Rohit Sharma",
+            username="rohit_sharma",
+            email="rohit@university.edu",
+            password="SecurePassword@123",
+            registration_no="23BCON7777"
+        )
+        self.assertGreater(user_id, 0)
+
+        # Verification: Account exists in database
+        db_user = database.get_user_by_id(user_id)
+        self.assertIsNotNone(db_user)
+        self.assertEqual(db_user['username'], "rohit_sharma")
+        self.assertEqual(db_user['registration_no'], "23BCON7777")
+
+        # Step 2: Login using username
+        auth_by_user = auth.authenticate("rohit_sharma", "SecurePassword@123")
+        self.assertIsNotNone(auth_by_user)
+        self.assertEqual(auth_by_user['id'], user_id)
+        self.assertEqual(auth_by_user['username'], "rohit_sharma")
+
+        # Step 3: Login using email
+        auth_by_email = auth.authenticate("rohit@university.edu", "SecurePassword@123")
+        self.assertIsNotNone(auth_by_email)
+        self.assertEqual(auth_by_email['id'], user_id)
+
+        # Step 4: Login using registration number (exact and case-insensitive)
+        auth_by_reg = auth.authenticate("23BCON7777", "SecurePassword@123")
+        self.assertIsNotNone(auth_by_reg)
+        self.assertEqual(auth_by_reg['id'], user_id)
+
+        auth_by_reg_lower = auth.authenticate("23bcon7777", "SecurePassword@123")
+        self.assertIsNotNone(auth_by_reg_lower)
+        self.assertEqual(auth_by_reg_lower['id'], user_id)
+
+        # Step 5: Wrong password -> rejected
+        self.assertIsNone(auth.authenticate("rohit_sharma", "WrongPassword!"))
+        self.assertIsNone(auth.authenticate("rohit@university.edu", "WrongPassword!"))
+        self.assertIsNone(auth.authenticate("23BCON7777", "WrongPassword!"))
+
+        # Step 6: Duplicate registration number -> rejected
+        with self.assertRaises(ValueError) as ctx:
+            auth.register_user(
+                name="Duplicate Rohit",
+                username="rohit_duplicate",
+                email="rohit_dup@university.edu",
+                password="SecurePassword@123",
+                registration_no="23BCON7777"
+            )
+        self.assertIn("already linked to another account", str(ctx.exception))
+
     def test_master_student_directory_import(self):
         """Verify master student directory was loaded with registration numbers and names."""
         amit = database.get_person_by_regno("23BCON0028")

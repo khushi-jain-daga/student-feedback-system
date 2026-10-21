@@ -453,18 +453,27 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
     return fetch_one('SELECT * FROM users WHERE id = ?', (user_id,))
 
 
-def get_user_by_username_or_email(identifier: str) -> Optional[Dict[str, Any]]:
-    """Retrieve a user by username or email (case-insensitive)."""
-    clean = identifier.strip().lower()
+def get_user_by_identifier(identifier: str) -> Optional[Dict[str, Any]]:
+    """Retrieve a user by username, email, or registration number (case-insensitive)."""
+    if not identifier or not str(identifier).strip():
+        return None
+    raw = str(identifier).strip()
+    clean_lower = raw.lower()
+    clean_upper = raw.upper()
     return fetch_one(
-        'SELECT * FROM users WHERE LOWER(username) = ? OR LOWER(email) = ?',
-        (clean, clean)
+        'SELECT * FROM users WHERE LOWER(username) = ? OR LOWER(email) = ? OR UPPER(registration_no) = ?',
+        (clean_lower, clean_lower, clean_upper)
     )
+
+
+def get_user_by_username_or_email(identifier: str) -> Optional[Dict[str, Any]]:
+    """Retrieve a user by username, email, or registration number (case-insensitive)."""
+    return get_user_by_identifier(identifier)
 
 
 def get_user(username: str) -> Optional[Dict[str, Any]]:
     """Backward-compatible lookup by username."""
-    return get_user_by_username_or_email(username)
+    return get_user_by_identifier(username)
 
 
 def update_user_password(user_id_or_username, new_password_hash: str):

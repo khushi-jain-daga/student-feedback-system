@@ -13,6 +13,7 @@ from database import (
     create_user,
     get_user_by_id,
     get_user_by_username_or_email,
+    get_user_by_identifier,
     update_user_password,
     get_engine,
     fetch_one,
@@ -111,11 +112,11 @@ def register_user(
         raise ValueError("Password must be at least 8 characters long.")
 
     # Check for duplicate username or email
-    existing_user = get_user_by_username_or_email(username)
+    existing_user = fetch_one("SELECT id FROM users WHERE LOWER(username) = ?", (username.lower(),))
     if existing_user:
         raise ValueError(f"Username '{username}' is already registered.")
 
-    existing_email = get_user_by_username_or_email(email)
+    existing_email = fetch_one("SELECT id FROM users WHERE LOWER(email) = ?", (email.lower(),))
     if existing_email:
         raise ValueError(f"Email '{email}' is already associated with an account.")
 
@@ -134,6 +135,14 @@ def register_user(
         role=role,
         registration_no=reg_clean
     )
+
+    # Verification: Ensure account was created and exists in database
+    if not user_id or user_id <= 0:
+        raise ValueError("Failed to create account. Please check your details and try again.")
+
+    created_user = get_user_by_id(user_id)
+    if not created_user:
+        raise ValueError("Account creation verification failed. Please try again.")
 
     # Automatically link person record in `people` if registration number or name matches
     try:
@@ -167,13 +176,13 @@ def register_student(username: str, full_name: str, email: str, password: str, r
 
 def authenticate(identifier: str, password: str) -> Optional[Dict[str, Any]]:
     """
-    Authenticate a user by username OR email and password.
+    Authenticate a user by username, email, OR registration number and password.
     Returns safe user dictionary on success, or None on failure.
     """
     if not identifier or not password:
         return None
 
-    user = get_user_by_username_or_email(identifier.strip())
+    user = get_user_by_identifier(identifier.strip())
     if user and verify_password(password, user['password_hash']):
         # Map legacy 'student' role to 'user'
         role = 'user' if user.get('role') == 'student' else user.get('role', 'user')
