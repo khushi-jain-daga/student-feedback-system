@@ -632,6 +632,12 @@ if "review_submitted" not in st.session_state:
 if "auth_flash_success" not in st.session_state:
     st.session_state.auth_flash_success = None
 
+if "auth_view" not in st.session_state:
+    st.session_state.auth_view = "Sign In"
+
+if "new_account_created" not in st.session_state:
+    st.session_state.new_account_created = False
+
 if "admin_active_tab" not in st.session_state:
     st.session_state.admin_active_tab = "Dashboard"
 
@@ -758,79 +764,106 @@ def render_landing_page():
     with col_right:
         st.markdown('<div class="auth-container-card">', unsafe_allow_html=True)
 
-        # Persistent authentication flash message after registration
         if st.session_state.get("auth_flash_success"):
-            st.success(
-                "✓ Account created successfully\n\n"
-                "You can now sign in using your username, email, or registration number."
-            )
+            st.success(st.session_state.auth_flash_success)
             st.session_state.auth_flash_success = None
 
-        auth_tab_login, auth_tab_register = st.tabs(["Sign In", "Create Account"])
+        auth_view = st.radio(
+            "Account access",
+            ["Sign In", "Create Account"],
+            horizontal=True,
+            key="auth_view",
+            label_visibility="collapsed"
+        )
 
-        # TAB 1: SIGN IN
-        with auth_tab_login:
-            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in with your registered username, email address, or registration number.</div>', unsafe_allow_html=True)
+        if auth_view == "Sign In":
+            st.markdown('<div class="auth-header-title">Welcome Back</div><div class="auth-header-caption">Sign in using your username, email address, or registration number.</div>', unsafe_allow_html=True)
 
             with st.form("login_form", clear_on_submit=False):
                 login_id = st.text_input(
                     "Username, Email or Registration Number",
-                    placeholder="e.g. user@university.edu, username, or 23BCON0028"
+                    placeholder="e.g. username, user@university.edu, or 23BCON0028"
                 )
                 login_password = st.text_input(
                     "Password",
                     type="password",
-                    placeholder="Enter your account password"
+                    placeholder="Enter your password"
                 )
-                submit_login = st.form_submit_button("Sign In to Portal", type="primary", use_container_width=True)
+                submit_login = st.form_submit_button(
+                    "Sign In to Portal",
+                    type="primary",
+                    use_container_width=True
+                )
 
             if submit_login:
                 if not login_id.strip() or not login_password:
-                    st.error("Please enter both your identifier and password.")
-                else:
-                    user_data = auth.authenticate(login_id.strip(), login_password)
-                    if user_data:
-                        st.session_state.user = user_data
-                        st.session_state.review_submitted = False
-                        st.rerun()
-                    else:
-                        st.error("Account not found or password is incorrect.")
-
-        # TAB 2: CREATE ACCOUNT
-        with auth_tab_register:
-            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Register a new account to participate in academic reviews.</div>', unsafe_allow_html=True)
-
-            with st.form("register_form", clear_on_submit=True):
-                reg_name = st.text_input("Full Name", placeholder="e.g. AMIT AGARWAL")
-                reg_user = st.text_input("Username", placeholder="e.g. amitag (minimum 3 characters)")
-                reg_email = st.text_input("Email Address", placeholder="e.g. amit.agarwal@university.edu")
-                reg_no = st.text_input(
-                    "Registration Number (Students only — e.g. 23BCON0028)",
-                    placeholder="e.g. 23BCON0028"
-                )
-                reg_pass = st.text_input("Password (min 8 characters)", type="password")
-                reg_confirm = st.text_input("Confirm Password", type="password")
-                submit_reg = st.form_submit_button("Create Account", type="primary", use_container_width=True)
-
-            if submit_reg:
-                if reg_pass != reg_confirm:
-                    st.error("Passwords do not match. Please verify both password entries.")
+                    st.error("Please enter both your account identifier and password.")
                 else:
                     try:
-                        auth.register_user(
-                            name=reg_name,
-                            username=reg_user,
-                            email=reg_email,
+                        user_data = auth.authenticate(login_id.strip(), login_password)
+                    except Exception as err:
+                        print(f"[AUTH ERROR] Login failed with {type(err).__name__}")
+                        user_data = None
+                        st.error("Sign in is temporarily unavailable. Please try again.")
+                    else:
+                        if user_data:
+                            st.session_state.user = user_data
+                            st.session_state.review_submitted = False
+                            st.rerun()
+                        else:
+                            st.error("Account not found or password is incorrect.")
+
+        else:
+            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Create your account once, then use it anytime to submit feedback securely.</div>', unsafe_allow_html=True)
+
+            with st.form("register_form", clear_on_submit=False):
+                reg_name = st.text_input("Full Name", placeholder="e.g. AMIT AGARWAL")
+                reg_user = st.text_input("Username", placeholder="e.g. amitag")
+                reg_email = st.text_input("Email Address", placeholder="e.g. amit@example.com")
+                reg_no = st.text_input(
+                    "Registration Number (optional for non-students)",
+                    placeholder="e.g. 23BCON0028"
+                )
+                reg_pass = st.text_input("Password", type="password", placeholder="Minimum 8 characters")
+                reg_confirm = st.text_input("Confirm Password", type="password")
+                submit_reg = st.form_submit_button(
+                    "Create Account",
+                    type="primary",
+                    use_container_width=True
+                )
+
+            if submit_reg:
+                if not reg_name.strip() or not reg_user.strip() or not reg_email.strip():
+                    st.error("Please complete your name, username, and email.")
+                elif reg_pass != reg_confirm:
+                    st.error("Passwords do not match.")
+                else:
+                    try:
+                        user_id = auth.register_user(
+                            name=reg_name.strip(),
+                            username=reg_user.strip(),
+                            email=reg_email.strip(),
                             password=reg_pass,
-                            role='user',
-                            registration_no=reg_no.strip() if reg_no else None
+                            role="user",
+                            registration_no=reg_no.strip() if reg_no.strip() else None
                         )
-                        st.session_state.auth_flash_success = True
+                        if not user_id:
+                            raise RuntimeError("User creation returned no ID")
+
+                        user_data = auth.authenticate(reg_user.strip(), reg_pass)
+                        if not user_data:
+                            raise RuntimeError("Created account could not be authenticated")
+
+                        st.session_state.user = user_data
+                        st.session_state.new_account_created = True
+                        st.session_state.review_submitted = False
                         st.rerun()
+
                     except ValueError as err:
                         st.error(str(err))
                     except Exception as err:
-                        st.error(f"Registration failed: {err}")
+                        print(f"[AUTH ERROR] Registration failed with {type(err).__name__}")
+                        st.error("Account could not be created right now. Please try again.")
 
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -847,6 +880,10 @@ def render_landing_page():
 # VIEW 2: NORMAL USER PORTAL
 # ==============================================================================
 def render_user_dashboard(user):
+    if st.session_state.get("new_account_created"):
+        st.success("✓ Account created successfully. You are now signed in.")
+        st.session_state.new_account_created = False
+
     # Sidebar App-Shell
     with st.sidebar:
         st.markdown("### 🎓 SFMS Portal")
