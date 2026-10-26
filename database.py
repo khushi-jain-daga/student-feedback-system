@@ -192,10 +192,29 @@ def init_db():
                     reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
                     rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+                    overall_rating NUMERIC(3,2),
                     review_text TEXT NOT NULL,
                     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(reviewer_id, person_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS review_scores (
+                    id SERIAL PRIMARY KEY,
+                    review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+                    criterion_key VARCHAR(100) NOT NULL,
+                    criterion_label TEXT NOT NULL,
+                    category VARCHAR(100) NOT NULL,
+                    score INTEGER NOT NULL CHECK(score BETWEEN 1 AND 5),
+                    UNIQUE(review_id, criterion_key)
+                );
+
+                CREATE TABLE IF NOT EXISTS password_resets (
+                    id SERIAL PRIMARY KEY,
+                    identifier VARCHAR(255) NOT NULL,
+                    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+                    note TEXT,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
@@ -203,6 +222,9 @@ def init_db():
                 CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
                 CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
                 CREATE INDEX IF NOT EXISTS idx_people_regno ON people(registration_no);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_review ON review_scores(review_id);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_key ON review_scores(criterion_key);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_cat ON review_scores(category);
                 ''')
                 conn.commit()
             else:
@@ -234,16 +256,38 @@ def init_db():
                     reviewer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
                     rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+                    overall_rating REAL,
                     review_text TEXT NOT NULL,
                     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(reviewer_id, person_id)
                 );
 
+                CREATE TABLE IF NOT EXISTS review_scores (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+                    criterion_key TEXT NOT NULL,
+                    criterion_label TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    score INTEGER NOT NULL CHECK(score BETWEEN 1 AND 5),
+                    UNIQUE(review_id, criterion_key)
+                );
+
+                CREATE TABLE IF NOT EXISTS password_resets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    identifier TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    note TEXT,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id);
                 CREATE INDEX IF NOT EXISTS idx_reviews_person ON reviews(person_id);
                 CREATE INDEX IF NOT EXISTS idx_people_type ON people(type);
                 CREATE INDEX IF NOT EXISTS idx_people_active ON people(active);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_review ON review_scores(review_id);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_key ON review_scores(criterion_key);
+                CREATE INDEX IF NOT EXISTS idx_review_scores_cat ON review_scores(category);
                 ''')
 
                 # SQLite backward-compatibility migrations
@@ -301,6 +345,48 @@ def init_db():
                     if 'registration_no' not in u_cols:
                         conn.execute('ALTER TABLE users ADD COLUMN registration_no TEXT')
                         conn.commit()
+                except Exception:
+                    pass
+
+                # Migration: Ensure overall_rating column exists in reviews table
+                try:
+                    r_cols = [r[1] for r in conn.execute('PRAGMA table_info(reviews)').fetchall()]
+                    if 'overall_rating' not in r_cols:
+                        conn.execute('ALTER TABLE reviews ADD COLUMN overall_rating REAL')
+                        conn.commit()
+                except Exception:
+                    pass
+
+                # Migration: Ensure review_scores table exists
+                try:
+                    conn.execute('''
+                    CREATE TABLE IF NOT EXISTS review_scores (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+                        criterion_key TEXT NOT NULL,
+                        criterion_label TEXT NOT NULL,
+                        category TEXT NOT NULL,
+                        score INTEGER NOT NULL CHECK(score BETWEEN 1 AND 5),
+                        UNIQUE(review_id, criterion_key)
+                    )''')
+                    conn.execute('CREATE INDEX IF NOT EXISTS idx_review_scores_review ON review_scores(review_id)')
+                    conn.execute('CREATE INDEX IF NOT EXISTS idx_review_scores_key ON review_scores(criterion_key)')
+                    conn.execute('CREATE INDEX IF NOT EXISTS idx_review_scores_cat ON review_scores(category)')
+                    conn.commit()
+                except Exception:
+                    pass
+
+                # Migration: Ensure password_resets table exists
+                try:
+                    conn.execute('''
+                    CREATE TABLE IF NOT EXISTS password_resets (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        identifier TEXT NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'pending',
+                        note TEXT,
+                        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )''')
+                    conn.commit()
                 except Exception:
                     pass
 
@@ -543,7 +629,7 @@ def list_people(
 
     if search_query and search_query.strip():
         term = f"%{search_query.strip().lower()}%"
-        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)'
+        query += " AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)"
         params.extend([term, term, term])
 
     query += ' ORDER BY p.name ASC'
@@ -668,7 +754,7 @@ def get_students_summary(search_query: Optional[str] = None) -> List[Dict[str, A
 
     if search_query and search_query.strip():
         term = f"%{search_query.strip().lower()}%"
-        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)'
+        query += " AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)"
         params.extend([term, term, term])
 
     query += ' GROUP BY p.id, p.name, p.registration_no, p.department, p.active, p.linked_user_id, u.username ORDER BY p.name ASC'
@@ -833,26 +919,141 @@ def set_faculty_active(faculty_id: int, active: bool):
     set_person_active(faculty_id, active)
 
 
+# ==============================================================================
+# Evaluation Criteria Constants (CampusVoice Academic Model)
+# ==============================================================================
+
+STUDENT_EVALUATION_CRITERIA: List[Dict[str, str]] = [
+    # Section 1: ACADEMICS
+    {
+        "key": "student_academic_concepts",
+        "label": "Understands the concepts taught and can apply them",
+        "category": "Academics"
+    },
+    {
+        "key": "student_assignment_quality",
+        "label": "Completes assignments and lab work on time with good quality",
+        "category": "Academics"
+    },
+    {
+        "key": "student_participation",
+        "label": "Takes part in class discussions and asks questions",
+        "category": "Academics"
+    },
+    {
+        "key": "student_improvement",
+        "label": "Shows improvement in tests and exams over time",
+        "category": "Academics"
+    },
+    # Section 2: BEHAVIOUR & CONDUCT
+    {
+        "key": "student_attendance",
+        "label": "Attends regularly and arrives on time",
+        "category": "Behaviour & Conduct"
+    },
+    {
+        "key": "student_respect",
+        "label": "Is respectful towards teachers and classmates",
+        "category": "Behaviour & Conduct"
+    },
+    {
+        "key": "student_discipline",
+        "label": "Stays focused and disciplined in class",
+        "category": "Behaviour & Conduct"
+    },
+    {
+        "key": "student_teamwork",
+        "label": "Works well in a team and helps others",
+        "category": "Behaviour & Conduct"
+    },
+    {
+        "key": "student_initiative",
+        "label": "Takes responsibility and shows initiative",
+        "category": "Behaviour & Conduct"
+    }
+]
+
+TEACHER_EVALUATION_CRITERIA: List[Dict[str, str]] = [
+    # Section 1: TEACHING QUALITY
+    {
+        "key": "teacher_concept_clarity",
+        "label": "Explains concepts clearly",
+        "category": "Teaching Quality"
+    },
+    {
+        "key": "teacher_relevant_examples",
+        "label": "Uses relevant examples",
+        "category": "Teaching Quality"
+    },
+    {
+        "key": "teacher_subject_knowledge",
+        "label": "Maintains subject knowledge",
+        "category": "Teaching Quality"
+    },
+    {
+        "key": "teacher_syllabus_coverage",
+        "label": "Covers syllabus systematically",
+        "category": "Teaching Quality"
+    },
+    # Section 2: STUDENT SUPPORT
+    {
+        "key": "teacher_doubt_resolution",
+        "label": "Resolves doubts effectively",
+        "category": "Student Support"
+    },
+    {
+        "key": "teacher_encourages_questions",
+        "label": "Encourages questions",
+        "category": "Student Support"
+    },
+    {
+        "key": "teacher_helpful_feedback",
+        "label": "Provides helpful feedback",
+        "category": "Student Support"
+    },
+    {
+        "key": "teacher_approachable_respectful",
+        "label": "Is approachable and respectful",
+        "category": "Student Support"
+    },
+    # Section 3: CLASS MANAGEMENT
+    {
+        "key": "teacher_class_management",
+        "label": "Maintains discipline and engagement",
+        "category": "Class Management"
+    }
+]
+
+
+def get_evaluation_criteria(target_type: str) -> List[Dict[str, str]]:
+    """Return structured evaluation criteria catalog for given target type ('student' or 'teacher')."""
+    if str(target_type).strip().lower() == 'teacher':
+        return TEACHER_EVALUATION_CRITERIA
+    return STUDENT_EVALUATION_CRITERIA
+
+
 # ------------------------------------------------------------------------------
 # Reviews CRUD & Business Logic
 # ------------------------------------------------------------------------------
 
-def submit_or_update_review(reviewer_id: int, person_id: int, rating: int, review_text: str) -> int:
+def submit_or_update_review(
+    reviewer_id: int,
+    person_id: int,
+    rating: Optional[int] = None,
+    review_text: str = "",
+    scores: Optional[List[Dict[str, Any]]] = None
+) -> int:
     """
     Submit or update a review.
+    - Backward-compatible with single rating calls and multi-criterion score evaluations.
     - Prevents self-review:
       - If person is linked to reviewer account
       - If person has the same registration number as reviewer
       - If person has the same name as reviewer
     - If user reviews the same person again, updates existing review (duplicate prevention).
-    - Ensures rating is between 1 and 5.
+    - Calculates overall rating from structured criterion scores if provided.
+    - Persists granular scores to review_scores table.
     """
-    if rating < 1 or rating > 5:
-        raise ValueError("Rating must be between 1 and 5 stars.")
-    review_text = review_text.strip()
-    if not review_text:
-        raise ValueError("Written review comment cannot be empty.")
-
     # Validate person
     person = get_person(person_id)
     if not person:
@@ -879,18 +1080,178 @@ def submit_or_update_review(reviewer_id: int, person_id: int, rating: int, revie
     if person.get('name', '').strip().lower() == reviewer.get('name', '').strip().lower():
         raise ValueError("Self-review is not permitted. You cannot review yourself.")
 
-    # Upsert query compatible with both SQLite (3.24+) and PostgreSQL
-    sql = '''
-    INSERT INTO reviews (reviewer_id, person_id, rating, review_text, created_at, updated_at)
-    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-    ON CONFLICT(reviewer_id, person_id)
-    DO UPDATE SET
-        rating = excluded.rating,
-        review_text = excluded.review_text,
-        updated_at = CURRENT_TIMESTAMP
-    '''
-    execute_query(sql, (reviewer_id, person_id, rating, review_text))
-    return 1
+    # Process scores & overall rating
+    clean_scores = []
+    overall_float = None
+
+    if scores:
+        for s in scores:
+            val = int(s.get('score', 0))
+            if val < 1 or val > 5:
+                raise ValueError("Each evaluation score must be between 1 and 5.")
+            clean_scores.append({
+                'key': s.get('key') or s.get('criterion_key'),
+                'label': s.get('label') or s.get('criterion_label', ''),
+                'category': s.get('category', 'General'),
+                'score': val
+            })
+        overall_float = round(sum(s['score'] for s in clean_scores) / len(clean_scores), 2)
+        int_rating = max(1, min(5, int(round(overall_float))))
+        rating = int_rating
+    else:
+        if rating is None or rating < 1 or rating > 5:
+            raise ValueError("Rating must be between 1 and 5 stars.")
+        overall_float = float(rating)
+
+    review_text = (review_text or "").strip()
+    if not review_text:
+        if clean_scores:
+            review_text = "Evaluated across institutional criteria."
+        else:
+            raise ValueError("Written review comment cannot be empty.")
+
+    # Upsert into reviews table (compatible with SQLite 3.24+ and PostgreSQL)
+    try:
+        sql = '''
+        INSERT INTO reviews (reviewer_id, person_id, rating, overall_rating, review_text, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(reviewer_id, person_id)
+        DO UPDATE SET
+            rating = excluded.rating,
+            overall_rating = excluded.overall_rating,
+            review_text = excluded.review_text,
+            updated_at = CURRENT_TIMESTAMP
+        '''
+        execute_query(sql, (reviewer_id, person_id, rating, overall_float, review_text))
+    except Exception:
+        # Fallback if overall_rating column is temporarily unavailable
+        sql_fallback = '''
+        INSERT INTO reviews (reviewer_id, person_id, rating, review_text, created_at, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(reviewer_id, person_id)
+        DO UPDATE SET
+            rating = excluded.rating,
+            review_text = excluded.review_text,
+            updated_at = CURRENT_TIMESTAMP
+        '''
+        execute_query(sql_fallback, (reviewer_id, person_id, rating, review_text))
+
+    # Retrieve the review id
+    rev_row = fetch_one('SELECT id FROM reviews WHERE reviewer_id = ? AND person_id = ?', (reviewer_id, person_id))
+    review_id = rev_row['id'] if rev_row else 1
+
+    # Persist structured review scores
+    if clean_scores:
+        execute_query('DELETE FROM review_scores WHERE review_id = ?', (review_id,))
+        for cs in clean_scores:
+            execute_query(
+                '''INSERT INTO review_scores (review_id, criterion_key, criterion_label, category, score)
+                   VALUES (?, ?, ?, ?, ?)''',
+                (review_id, cs['key'], cs['label'], cs['category'], cs['score'])
+            )
+
+    return review_id
+
+
+def get_review_scores(review_id: int) -> List[Dict[str, Any]]:
+    """Retrieve all criterion scores recorded for a given review."""
+    return fetch_all(
+        'SELECT id, review_id, criterion_key, criterion_label, category, score FROM review_scores WHERE review_id = ? ORDER BY id ASC',
+        (review_id,)
+    )
+
+
+def get_review_category_scores(review_id: int) -> Dict[str, float]:
+    """Retrieve average score per category for a review."""
+    rows = fetch_all(
+        'SELECT category, ROUND(AVG(score), 2) AS cat_avg FROM review_scores WHERE review_id = ? GROUP BY category',
+        (review_id,)
+    )
+    return {r['category']: float(r['cat_avg']) for r in rows}
+
+
+def get_person_review_scores(person_id: int) -> List[Dict[str, Any]]:
+    """Retrieve all criterion scores submitted for a target person."""
+    return fetch_all('''
+        SELECT rs.*, r.updated_at, r.reviewer_id
+        FROM review_scores rs
+        JOIN reviews r ON rs.review_id = r.id
+        WHERE r.person_id = ?
+        ORDER BY rs.id ASC
+    ''', (person_id,))
+
+
+def get_evaluation_analytics() -> Dict[str, Any]:
+    """Retrieve institutional evaluation metrics and criterion-level performance analytics."""
+    student_cats = fetch_all('''
+        SELECT rs.category, ROUND(AVG(rs.score), 2) AS avg_score, COUNT(rs.id) AS total_evals
+        FROM review_scores rs
+        JOIN reviews r ON rs.review_id = r.id
+        JOIN people p ON r.person_id = p.id
+        WHERE LOWER(p.type) = 'student'
+        GROUP BY rs.category
+    ''')
+
+    teacher_cats = fetch_all('''
+        SELECT rs.category, ROUND(AVG(rs.score), 2) AS avg_score, COUNT(rs.id) AS total_evals
+        FROM review_scores rs
+        JOIN reviews r ON rs.review_id = r.id
+        JOIN people p ON r.person_id = p.id
+        WHERE LOWER(p.type) = 'teacher'
+        GROUP BY rs.category
+    ''')
+
+    top_crit = fetch_all('''
+        SELECT rs.criterion_label, rs.category, ROUND(AVG(rs.score), 2) AS avg_score, COUNT(rs.id) AS total_ratings
+        FROM review_scores rs
+        GROUP BY rs.criterion_label, rs.category
+        ORDER BY avg_score DESC, total_ratings DESC
+        LIMIT 5
+    ''')
+
+    lowest_crit = fetch_all('''
+        SELECT rs.criterion_label, rs.category, ROUND(AVG(rs.score), 2) AS avg_score, COUNT(rs.id) AS total_ratings
+        FROM review_scores rs
+        GROUP BY rs.criterion_label, rs.category
+        ORDER BY avg_score ASC, total_ratings DESC
+        LIMIT 5
+    ''')
+
+    user_participation = fetch_all('''
+        SELECT u.id, u.name, u.username, u.email, u.registration_no, COUNT(r.id) AS reviews_submitted
+        FROM users u
+        LEFT JOIN reviews r ON u.id = r.reviewer_id
+        WHERE u.role = 'user'
+        GROUP BY u.id, u.name, u.username, u.email, u.registration_no
+        ORDER BY reviews_submitted DESC
+    ''')
+
+    return {
+        'student_category_averages': student_cats,
+        'teacher_category_averages': teacher_cats,
+        'top_criteria': top_crit,
+        'lowest_criteria': lowest_crit,
+        'user_participation': user_participation
+    }
+
+
+def create_password_reset_request(identifier: str, note: str = "") -> int:
+    """Record an admin-assisted password reset request."""
+    return insert_and_get_id(
+        "INSERT INTO password_resets (identifier, status, note) VALUES (?, 'pending', ?)",
+        (identifier.strip(), note.strip())
+    )
+
+
+def get_password_reset_requests() -> List[Dict[str, Any]]:
+    """Retrieve all password reset requests."""
+    return fetch_all("SELECT * FROM password_resets ORDER BY created_at DESC")
+
+
+def resolve_password_reset_request(request_id: int) -> bool:
+    """Mark a password reset request as resolved."""
+    return execute_query("UPDATE password_resets SET status = 'resolved' WHERE id = ?", (request_id,)) > 0
+
 
 
 def submit_feedback(student_id: int, faculty_id: int, course: str, rating: int, comments: str) -> int:
@@ -1028,7 +1389,7 @@ def fetch_admin_reviews(
             LOWER(u.name) LIKE ? OR
             LOWER(u.username) LIKE ? OR
             LOWER(u.email) LIKE ? OR
-            LOWER(COALESCE(u.registration_no, "")) LIKE ? OR
+            LOWER(COALESCE(u.registration_no, '')) LIKE ? OR
             LOWER(p.name) LIKE ? OR
             LOWER(COALESCE(p.registration_no, '')) LIKE ? OR
             LOWER(p.department) LIKE ? OR
@@ -1037,7 +1398,63 @@ def fetch_admin_reviews(
         params.extend([term, term, term, term, term, term, term, term])
 
     query += ' ORDER BY r.updated_at DESC, r.id DESC'
-    return fetch_all(query, tuple(params))
+    reviews = fetch_all(query, tuple(params))
+
+    # Fetch and map category scores
+    try:
+        score_rows = fetch_all('SELECT review_id, category, ROUND(AVG(score), 2) AS cat_avg FROM review_scores GROUP BY review_id, category')
+        score_map = {}
+        for sr in score_rows:
+            rid = sr['review_id']
+            if rid not in score_map:
+                score_map[rid] = {}
+            score_map[rid][sr['category']] = float(sr['cat_avg'])
+
+        for r in reviews:
+            cats = score_map.get(r['review_id'], {})
+            r['academic_score'] = cats.get('Academics')
+            r['behaviour_score'] = cats.get('Behaviour & Conduct')
+            r['teaching_quality_score'] = cats.get('Teaching Quality')
+            r['student_support_score'] = cats.get('Student Support')
+            r['class_management_score'] = cats.get('Class Management')
+            r['overall_score'] = round(float(r.get('overall_rating') or r['rating']), 2)
+    except Exception:
+        for r in reviews:
+            r['academic_score'] = None
+            r['behaviour_score'] = None
+            r['teaching_quality_score'] = None
+            r['student_support_score'] = None
+            r['class_management_score'] = None
+            r['overall_score'] = float(r.get('overall_rating') or r['rating'])
+
+    return reviews
+
+
+def fetch_all_structured_scores_for_export() -> List[Dict[str, Any]]:
+    """Retrieve all structured criterion scores joined with reviewer and reviewed person details for CSV export."""
+    query = '''
+    SELECT
+        r.id AS review_id,
+        u.name AS reviewer_name,
+        u.username AS reviewer_username,
+        u.email AS reviewer_email,
+        p.name AS reviewed_person,
+        p.registration_no AS reviewed_person_regno,
+        p.type AS reviewed_person_type,
+        p.department AS reviewed_person_department,
+        rs.category,
+        rs.criterion_label,
+        rs.criterion_key,
+        rs.score,
+        r.updated_at
+    FROM review_scores rs
+    JOIN reviews r ON rs.review_id = r.id
+    JOIN users u ON r.reviewer_id = u.id
+    JOIN people p ON r.person_id = p.id
+    ORDER BY r.id DESC, rs.id ASC
+    '''
+    return fetch_all(query)
+
 
 
 def fetch_feedback(student_id=None, faculty_id=None) -> List[Dict[str, Any]]:

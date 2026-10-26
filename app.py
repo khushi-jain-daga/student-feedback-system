@@ -1159,9 +1159,9 @@ def render_landing_page():
                 </svg>
                 <span class="landing-badge">Institutional Evaluation Portal</span>
             </div>
-            <div class="landing-title">Student Feedback<br>Management System</div>
+            <div class="landing-title">Share Better Feedback.<br>Build a Better Academic Community.</div>
             <div class="landing-subtitle">
-                Secure, structured peer and faculty evaluation for academic institutions.
+                Secure peer and faculty evaluation built for academic institutions.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1169,30 +1169,31 @@ def render_landing_page():
         st.markdown("""
         <div class="compact-cards-stack">
             <div class="compact-card">
-                <div class="compact-card-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </div>
+                <div class="compact-card-icon">🔒</div>
                 <div>
-                    <div class="compact-card-title">Private Reviews</div>
-                    <div class="compact-card-text">Reviews are visible only to authorized administrators.</div>
+                    <div class="compact-card-title">Private Feedback</div>
+                    <div class="compact-card-text">Ratings and comments are visible only to authorized administrators.</div>
                 </div>
             </div>
             <div class="compact-card">
-                <div class="compact-card-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                </div>
+                <div class="compact-card-icon">✓</div>
                 <div>
                     <div class="compact-card-title">Verified Directory</div>
-                    <div class="compact-card-text">Students are identified using official registration numbers.</div>
+                    <div class="compact-card-text">Students and faculty are verified through official institutional directories.</div>
                 </div>
             </div>
             <div class="compact-card">
-                <div class="compact-card-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                </div>
+                <div class="compact-card-icon">★</div>
                 <div>
-                    <div class="compact-card-title">Fair Evaluation</div>
-                    <div class="compact-card-text">Self-review and duplicate review protections are enforced.</div>
+                    <div class="compact-card-title">Structured Evaluation</div>
+                    <div class="compact-card-text">Multi-criterion evaluation across academics, conduct, and teaching quality.</div>
+                </div>
+            </div>
+            <div class="compact-card">
+                <div class="compact-card-icon">🛡️</div>
+                <div>
+                    <div class="compact-card-title">Admin Controlled</div>
+                    <div class="compact-card-text">Protected against self-review and duplicate submissions with strict auditing.</div>
                 </div>
             </div>
         </div>
@@ -1245,11 +1246,30 @@ def render_landing_page():
                     else:
                         st.error("Account not found or password is incorrect.")
 
+            # Forgot Password Flow
+            with st.expander("🔑 Forgot password?"):
+                st.markdown("<div style='font-size:0.85rem; color:#475569; margin-bottom:0.5rem;'>Need assistance recovering your credentials?</div>", unsafe_allow_html=True)
+                reset_identifier = st.text_input(
+                    "Enter Username, Email, or Registration Number",
+                    placeholder="e.g. 23BCON0028 or username",
+                    key="forgot_pwd_input"
+                )
+                if st.button("Request Password Reset", key="forgot_pwd_submit_btn", use_container_width=True):
+                    if not reset_identifier.strip():
+                        st.warning("Please provide your username, email, or registration number.")
+                    else:
+                        database.create_password_reset_request(
+                            reset_identifier.strip(),
+                            "User submitted reset request via login portal."
+                        )
+                        st.info("Password reset via email is not configured. Contact the administrator.")
+                        st.success(f"Your password reset request for '{reset_identifier.strip()}' has been recorded. Please contact your institutional administrator (admin@feedback.local) for assistance.")
+
         # TAB 2: CREATE ACCOUNT
         else:
-            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Register a new account to participate in academic reviews.</div>', unsafe_allow_html=True)
+            st.markdown('<div class="auth-header-title">Create Account</div><div class="auth-header-caption">Register a new verified institutional account to participate in academic reviews.</div>', unsafe_allow_html=True)
 
-            with st.form("register_form", clear_on_submit=True):
+            with st.form("register_form", clear_on_submit=False):
                 reg_name = st.text_input("Full Name", placeholder="e.g. AMIT AGARWAL")
                 reg_user = st.text_input("Username", placeholder="e.g. amitag (minimum 3 characters)")
                 reg_email = st.text_input("Email Address", placeholder="e.g. amit.agarwal@university.edu")
@@ -1262,28 +1282,43 @@ def render_landing_page():
                 submit_reg = st.form_submit_button("Create Account", type="primary", use_container_width=True)
 
             if submit_reg:
-                if not reg_name.strip() or not reg_user.strip() or not reg_email.strip():
+                cleaned_name = reg_name.strip()
+                cleaned_user = reg_user.strip()
+                cleaned_email = reg_email.strip()
+                cleaned_reg = reg_no.strip().upper() if reg_no and reg_no.strip() else None
+
+                if not cleaned_name or not cleaned_user or not cleaned_email:
                     st.error("Please complete your name, username, and email.")
+                elif len(cleaned_name) < 2:
+                    st.error("Please provide a valid full name (at least 2 characters).")
+                elif len(cleaned_user) < 3:
+                    st.error("Username must have at least 3 characters.")
                 elif reg_pass != reg_confirm:
                     st.error("Passwords do not match. Please verify both password entries.")
+                elif len(reg_pass) < 8:
+                    st.error("Password must be at least 8 characters long.")
+                elif cleaned_reg and not database.get_person_by_regno(cleaned_reg):
+                    st.error(f"Registration number '{cleaned_reg}' was not found in the verified student directory. Please verify your registration number or contact the administrator.")
                 else:
                     try:
                         user_id = auth.register_user(
-                            name=reg_name.strip(),
-                            username=reg_user.strip(),
-                            email=reg_email.strip(),
+                            name=cleaned_name,
+                            username=cleaned_user,
+                            email=cleaned_email,
                             password=reg_pass,
                             role='user',
-                            registration_no=reg_no.strip() if reg_no and reg_no.strip() else None
+                            registration_no=cleaned_reg,
+                            require_master_match=bool(cleaned_reg)
                         )
-                        user_data = auth.authenticate(reg_user.strip(), reg_pass)
+                        user_data = auth.authenticate(cleaned_user, reg_pass)
                         if user_data:
                             st.session_state.user = user_data
-                            st.session_state.new_account_created = True
+                            st.session_state.auth_welcome_banner = "Account created successfully. You are now signed in."
                             st.session_state.user_nav = "Home"
+                            st.session_state.active_target_person = None
                             st.session_state.review_submitted = False
                         else:
-                            st.session_state.auth_flash_success = "✓ Account created successfully. You can now sign in using your username, email, or registration number."
+                            st.session_state.auth_flash_success = "✓ Account created successfully\n\nYou can now sign in using your username, email, or registration number."
                         st.rerun()
                     except ValueError as err:
                         st.error(str(err))
@@ -1402,9 +1437,12 @@ def render_user_home(user):
     st_pct = int((reviewed_students / total_students * 100)) if total_students else 0
     t_pct = int((reviewed_teachers / total_teachers * 100)) if total_teachers else 0
 
+    if st.session_state.get("auth_welcome_banner"):
+        st.success(st.session_state.pop("auth_welcome_banner"))
+
     st.markdown(f"""
     <div class="premium-home-hero">
-        <div class="hero-eyebrow">● Campus Feedback Portal</div>
+        <div class="hero-eyebrow">● Campus Feedback Portal • Hello, {first_name}</div>
         <div class="hero-title">Welcome back, {first_name}.<br>Make every voice count.</div>
         <div class="hero-subtitle">
             Give thoughtful, private feedback to classmates and faculty through a secure institutional workflow.
@@ -1663,8 +1701,18 @@ def render_teacher_directory(user):
 
     user_reviews = database.get_user_reviewed_person_ids(user['id'])
 
-    for row_start in range(0, len(teachers), 3):
-        chunk = teachers[row_start : row_start + 3]
+    # Pagination: 12 cards per page (3 cards x 4 rows)
+    PAGE_SIZE = 12
+    total_pages = max(1, (len(teachers) + PAGE_SIZE - 1) // PAGE_SIZE)
+    if "teacher_page" not in st.session_state or st.session_state.teacher_page > total_pages:
+        st.session_state.teacher_page = 1
+
+    current_page = st.session_state.teacher_page
+    start_idx = (current_page - 1) * PAGE_SIZE
+    page_teachers = teachers[start_idx : start_idx + PAGE_SIZE]
+
+    for row_start in range(0, len(page_teachers), 3):
+        chunk = page_teachers[row_start : row_start + 3]
         cols = st.columns(3)
         for i, t in enumerate(chunk):
             with cols[i]:
@@ -1696,9 +1744,24 @@ def render_teacher_directory(user):
                         st.session_state.review_submitted = False
                         st.rerun()
 
+    # Pagination controls
+    if total_pages > 1:
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        col_tp_prev, col_tp_info, col_tp_next = st.columns([1, 2, 1], vertical_alignment="center")
+        with col_tp_prev:
+            if st.button("← Previous", disabled=(current_page <= 1), use_container_width=True, key="t_prev_btn"):
+                st.session_state.teacher_page = current_page - 1
+                st.rerun()
+        with col_tp_info:
+            st.markdown(f"<div style='text-align:center; font-size:0.85rem; color:#64748b;'>Page <strong>{current_page}</strong> of <strong>{total_pages}</strong> ({len(teachers)} total)</div>", unsafe_allow_html=True)
+        with col_tp_next:
+            if st.button("Next →", disabled=(current_page >= total_pages), use_container_width=True, key="t_next_btn"):
+                st.session_state.teacher_page = current_page + 1
+                st.rerun()
+
 
 def render_feedback_detail(user):
-    """Dedicated feedback submission screen with target card, privacy info, rating, and written comment."""
+    """Dedicated feedback submission screen with target card, privacy info, structured evaluation criteria, and comment."""
     target = st.session_state.get("active_target_person")
     target_type = st.session_state.get("active_target_type", "student")
 
@@ -1709,11 +1772,15 @@ def render_feedback_detail(user):
 
     # Post-submission clean success state
     if st.session_state.get("review_submitted"):
-        st.markdown("""
+        is_update = st.session_state.get("is_update_action", False)
+        title_text = "Feedback updated successfully" if is_update else "Feedback submitted successfully"
+        desc_text = "Your feedback has been securely recorded."
+
+        st.markdown(f"""
         <div class="submission-success-card">
             <div class="success-icon-badge">✓</div>
-            <div class="success-card-title">Feedback submitted successfully</div>
-            <div class="success-card-desc">Your feedback has been securely recorded.</div>
+            <div class="success-card-title">{title_text}</div>
+            <div class="success-card-desc">{desc_text}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1724,12 +1791,14 @@ def render_feedback_detail(user):
                 st.session_state.user_nav = back_dest
                 st.session_state.active_target_person = None
                 st.session_state.review_submitted = False
+                st.session_state.is_update_action = False
                 st.rerun()
         with col_s2:
             if st.button("Submit Another Feedback", use_container_width=True, key="succ_another_btn"):
                 st.session_state.user_nav = "Students"
                 st.session_state.active_target_person = None
                 st.session_state.review_submitted = False
+                st.session_state.is_update_action = False
                 st.rerun()
         return
 
@@ -1767,51 +1836,92 @@ def render_feedback_detail(user):
         <div class="privacy-notice-icon">🔒</div>
         <div>
             <div class="privacy-notice-title">Private Feedback</div>
-            <div class="privacy-notice-desc">Your rating and written feedback are visible only to authorized administrators.</div>
+            <div class="privacy-notice-desc">Your ratings and written comments are visible only to authorized administrators.</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # Existing review check (update policy)
     existing_rev = database.get_user_review_for_person(user['id'], target['id'])
+    prev_scores_map = {}
     if existing_rev:
-        st.info("You have reviewed this person before. Submitting again will update your previous feedback.")
-        init_rating = int(existing_rev['rating'])
-        init_comment = str(existing_rev['review_text'])
+        st.info("You previously reviewed this person. Submitting again will update your existing feedback.")
         submit_btn_text = "Update Feedback"
+        init_comment = str(existing_rev.get('review_text', ''))
+        # Load granular scores if available
+        old_scores = database.get_review_scores(existing_rev['id'])
+        for os in old_scores:
+            prev_scores_map[os['criterion_key']] = int(os['score'])
     else:
-        init_rating = 5
-        init_comment = ""
         submit_btn_text = "Submit Feedback"
+        init_comment = ""
 
-    with st.form("feedback_submission_form"):
-        st.markdown("**Overall Rating**")
-        rating_labels = {
-            1: "1 — Poor",
-            2: "2 — Fair",
-            3: "3 — Good",
-            4: "4 — Very Good",
-            5: "5 — Excellent"
-        }
-        rating = st.select_slider(
-            "Overall Rating",
-            options=[1, 2, 3, 4, 5],
-            value=init_rating,
-            format_func=lambda x: f"{rating_stars(x)}  {rating_labels[x]}",
-            label_visibility="collapsed"
-        )
+    # Criteria list
+    criteria = database.get_evaluation_criteria(target_type)
+    total_questions = len(criteria)
 
-        st.markdown("<div style='height: 0.75rem;'></div>", unsafe_allow_html=True)
-        st.markdown("**Written Feedback**")
+    # Group criteria by category
+    categories = {}
+    for c in criteria:
+        cat = c['category']
+        if cat not in categories:
+            categories[cat] = []
+        categories[cat].append(c)
+
+    rating_labels = {
+        1: "1 — Poor",
+        2: "2 — Fair",
+        3: "3 — Good",
+        4: "4 — Very Good",
+        5: "5 — Excellent"
+    }
+
+    st.markdown(f"""
+    <div style="display:flex; justify-content:space-between; align-items:center; margin: 1.1rem 0 0.8rem 0; padding:0.6rem 0.9rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px;">
+        <span style="font-size:0.88rem; font-weight:700; color:#0369a1;">Structured Evaluation</span>
+        <span style="font-size:0.82rem; font-weight:600; color:#0284c7;">Answered {total_questions} of {total_questions} criteria</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("structured_feedback_form"):
+        submitted_scores = []
+
+        for cat_name, cat_items in categories.items():
+            st.markdown(f"<div style='font-size:1.05rem; font-weight:800; color:#0f172a; margin-top:1.1rem; margin-bottom:0.4rem; padding-bottom:0.3rem; border-bottom:1.5px solid #e2e8f0; text-transform:uppercase; letter-spacing:0.04em;'>{cat_name}</div>", unsafe_allow_html=True)
+
+            for idx, item in enumerate(cat_items, 1):
+                prev_val = prev_scores_map.get(item['key'], 5)
+                st.markdown(f"<div style='font-size:0.9rem; font-weight:600; color:#1e293b; margin-top:0.75rem; margin-bottom:0.2rem;'>{item['label']}</div>", unsafe_allow_html=True)
+
+                q_score = st.select_slider(
+                    label=item['label'],
+                    options=[1, 2, 3, 4, 5],
+                    value=prev_val,
+                    format_func=lambda x: f"{rating_stars(x)}  {rating_labels[x]}",
+                    key=f"crit_{target['id']}_{item['key']}",
+                    label_visibility="collapsed"
+                )
+                submitted_scores.append({
+                    'key': item['key'],
+                    'label': item['label'],
+                    'category': item['category'],
+                    'score': q_score
+                })
+
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:1.05rem; font-weight:800; color:#0f172a; margin-bottom:0.4rem; padding-bottom:0.3rem; border-bottom:1.5px solid #e2e8f0; text-transform:uppercase; letter-spacing:0.04em;'>Written Feedback</div>", unsafe_allow_html=True)
+        st.caption("Constructive, respectful feedback (Optional, maximum 500 characters).")
+
         comment = st.text_area(
             "Written Feedback",
             value=init_comment,
-            placeholder="Share specific, constructive, and respectful feedback...",
-            height=130,
+            placeholder="Share specific, constructive observations that support academic and professional growth...",
+            height=120,
+            max_chars=500,
             label_visibility="collapsed"
         )
 
-        st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
         col_sub, col_can = st.columns([1.5, 1])
         with col_sub:
             submit_clicked = st.form_submit_button(submit_btn_text, type="primary", use_container_width=True)
@@ -1824,22 +1934,20 @@ def render_feedback_detail(user):
         st.rerun()
 
     if submit_clicked:
-        if not comment.strip():
-            st.error("Please provide written feedback before submitting.")
-        else:
-            try:
-                database.submit_or_update_review(
-                    reviewer_id=user['id'],
-                    person_id=target['id'],
-                    rating=int(rating),
-                    review_text=comment.strip()
-                )
-                st.session_state.review_submitted = True
-                st.rerun()
-            except ValueError as err:
-                st.error(str(err))
-            except Exception as err:
-                st.error(f"Failed to submit feedback: {err}")
+        try:
+            database.submit_or_update_review(
+                reviewer_id=user['id'],
+                person_id=target['id'],
+                review_text=comment.strip() if comment else "Evaluated across criteria.",
+                scores=submitted_scores
+            )
+            st.session_state.review_submitted = True
+            st.session_state.is_update_action = bool(existing_rev)
+            st.rerun()
+        except ValueError as err:
+            st.error(str(err))
+        except Exception as err:
+            st.error(f"Failed to submit feedback: {err}")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1936,7 +2044,7 @@ def render_admin_dashboard(user):
         st.caption("Institutional Review Administration")
         st.divider()
 
-        admin_options = ["📊 Overview", "📝 Reviews", "🎓 Students", "👨‍🏫 Teachers", "👤 Users", "📥 Export", "🚪 Logout"]
+        admin_options = ["📊 Overview", "📝 Reviews", "🎓 Students", "👨‍🏫 Teachers", "👤 Users", "📈 Analytics", "📥 Export", "🚪 Logout"]
 
         current_tab = st.session_state.get("admin_active_tab", "Overview")
         if current_tab in ("Dashboard", "Overview"):
@@ -1949,8 +2057,10 @@ def render_admin_dashboard(user):
             default_idx = 3
         elif current_tab == "Users":
             default_idx = 4
-        elif current_tab == "Export":
+        elif current_tab == "Analytics":
             default_idx = 5
+        elif current_tab == "Export":
+            default_idx = 6
         else:
             default_idx = 0
 
@@ -2183,20 +2293,28 @@ def render_admin_dashboard(user):
         else:
             table_records = []
             for r in reviews:
-                target_desc = r['reviewed_person']
-                if r['reviewed_person_type'] == 'student' and r.get('reviewed_person_regno'):
-                    target_desc += f" ({r['reviewed_person_regno']})"
-
                 raw_text = r['review_text'] or ""
                 trunc_text = (raw_text[:75] + "...") if len(raw_text) > 75 else raw_text
 
+                # Display category score strings
+                if r['reviewed_person_type'] == 'student':
+                    acad_str = f"{r['academic_score']:.2f}" if r.get('academic_score') is not None else "—"
+                    behav_str = f"{r['behaviour_score']:.2f}" if r.get('behaviour_score') is not None else "—"
+                else:
+                    acad_str = f"{r['teaching_quality_score']:.2f}" if r.get('teaching_quality_score') is not None else "—"
+                    behav_str = f"{r['student_support_score']:.2f}" if r.get('student_support_score') is not None else "—"
+
                 table_records.append({
                     "Review ID": r['review_id'],
-                    "Reviewer": f"{r['reviewer_name']} (@{r['reviewer_username']})",
-                    "Reviewed Person": target_desc,
-                    "Type": r['reviewed_person_type'].title(),
-                    "Rating": rating_stars(r['rating']),
-                    "Review": trunc_text,
+                    "Reviewer Name": r['reviewer_name'],
+                    "Reviewer Username": f"@{r['reviewer_username']}",
+                    "Target Person": r['reviewed_person'],
+                    "Target Type": r['reviewed_person_type'].title(),
+                    "Registration Number": r.get('reviewed_person_regno') or "—",
+                    "Academic Score": acad_str,
+                    "Behaviour Score": behav_str,
+                    "Overall Score": f"{r['overall_score']:.2f} ★",
+                    "Comment": trunc_text,
                     "Date": format_datetime(r['updated_at'])
                 })
 
@@ -2212,17 +2330,36 @@ def render_admin_dashboard(user):
             col_v1, col_v2 = st.columns([1.3, 1], gap="large")
 
             review_map = {
-                f"#{r['review_id']} — {r['reviewer_name']} on {r['reviewed_person']} ({rating_stars(r['rating'])})": r
+                f"#{r['review_id']} — {r['reviewer_name']} on {r['reviewed_person']} ({r['overall_score']:.2f} ★)": r
                 for r in reviews
             }
 
             with col_v1:
-                st.markdown("#### 🔍 View Complete Review")
+                st.markdown("#### 🔍 View Complete Review & Evaluation Rubric")
                 sel_rev_key = st.selectbox("Select Review to Inspect:", options=list(review_map.keys()))
                 chosen_rev = review_map[sel_rev_key]
 
                 reg_markup = f" • Reg: <code>{chosen_rev['reviewed_person_regno']}</code>" if chosen_rev.get('reviewed_person_regno') else ""
                 t_badge = "badge-student" if chosen_rev['reviewed_person_type'] == 'student' else "badge-teacher"
+
+                # Load granular scores
+                crit_scores = database.get_review_scores(chosen_rev['review_id'])
+
+                scores_html = ""
+                if crit_scores:
+                    cat_map = {}
+                    for cs in crit_scores:
+                        c_cat = cs['category']
+                        if c_cat not in cat_map:
+                            cat_map[c_cat] = []
+                        cat_map[c_cat].append(cs)
+
+                    scores_html = "<div style='margin: 0.9rem 0; padding: 0.9rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;'>"
+                    for c_cat, c_items in cat_map.items():
+                        scores_html += f"<div style='font-size:0.82rem; font-weight:800; color:#0369a1; text-transform:uppercase; margin-top:0.4rem; margin-bottom:0.3rem;'>{c_cat}</div>"
+                        for ci in c_items:
+                            scores_html += f"<div style='display:flex; justify-content:space-between; font-size:0.84rem; padding:0.25rem 0; border-bottom:1px solid #f1f5f9;'><span>{ci['criterion_label']}</span><strong style='color:#0f172a;'>{ci['score']}/5 ★</strong></div>"
+                    scores_html += "</div>"
 
                 st.markdown(f"""
                 <div class="ui-card">
@@ -2237,11 +2374,12 @@ def render_admin_dashboard(user):
                         <strong>Reviewer:</strong> {chosen_rev['reviewer_name']} (<code>@{chosen_rev['reviewer_username']}</code> • {chosen_rev['reviewer_email']})
                     </div>
                     <div style="font-size:0.88rem; color:#475569; margin-bottom:0.4rem;">
-                        <strong>Rating:</strong> <span style="color:#f59e0b; font-weight:700;">{rating_stars_label(chosen_rev['rating'])}</span>
+                        <strong>Overall Score:</strong> <span style="color:#f59e0b; font-weight:700;">{chosen_rev['overall_score']:.2f} ★</span>
                     </div>
                     <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:0.8rem;">
                         Submitted: {format_datetime(chosen_rev['created_at'])} | Updated: {format_datetime(chosen_rev['updated_at'])}
                     </div>
+                    {scores_html}
                     <div class="review-text-box">
                         {chosen_rev['review_text']}
                     </div>
@@ -2541,42 +2679,208 @@ def render_admin_dashboard(user):
     # 5. ADMIN USERS DIRECTORY
     # --------------------------------------------------------------------------
     elif current_page == "Users":
-        st.markdown("## Registered Accounts")
-        st.caption("Inspect verified user accounts and linked registration credentials.")
+        st.markdown("## User Accounts & Security")
+        st.caption("Inspect verified user accounts, linked student directory profiles, and manage password reset requests.")
 
-        all_users = database.list_users()
-        user_search = st.text_input("Search user accounts by name, username, email, or registration number...")
-        if user_search.strip():
-            kw = user_search.strip().lower()
-            all_users = [
-                u for u in all_users
-                if kw in u['name'].lower() or kw in u['username'].lower() or kw in u['email'].lower() or (u.get('registration_no') and kw in u['registration_no'].lower())
-            ]
+        tab_accounts, tab_resets = st.tabs(["👤 Registered Accounts", "🔑 Password Reset Requests"])
 
-        if not all_users:
-            st.markdown("""
-            <div class="empty-state">
-                <div class="empty-state-icon">👤</div>
-                <div class="empty-state-title">No User Accounts Found</div>
-                <div class="empty-state-text">No user accounts match your search query.</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            user_rows = []
-            for u in all_users:
-                user_rows.append({
-                    "Name": u['name'],
-                    "Username / Email": f"@{u['username']} • {u['email']}",
-                    "Registration Number": u.get('registration_no') or "—",
-                    "Role": u['role'].title(),
-                    "Created Date": format_datetime(u['created_at']),
-                    "Status": "Active"
-                })
+        with tab_accounts:
+            all_users = database.list_users()
+            user_search = st.text_input("Search user accounts by name, username, email, or registration number...")
+            if user_search.strip():
+                kw = user_search.strip().lower()
+                all_users = [
+                    u for u in all_users
+                    if kw in u['name'].lower() or kw in u['username'].lower() or kw in u['email'].lower() or (u.get('registration_no') and kw in u['registration_no'].lower())
+                ]
 
-            st.dataframe(pd.DataFrame(user_rows), hide_index=True, use_container_width=True)
+            if not all_users:
+                st.markdown("""
+                <div class="empty-state">
+                    <div class="empty-state-icon">👤</div>
+                    <div class="empty-state-title">No User Accounts Found</div>
+                    <div class="empty-state-text">No user accounts match your search query.</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                user_rows = []
+                for u in all_users:
+                    reg = u.get('registration_no')
+                    linked_person_info = "Linked Student Directory" if reg else "Not Linked"
+                    user_rows.append({
+                        "Name": u['name'],
+                        "Username / Email": f"@{u['username']} • {u['email']}",
+                        "Registration Number": reg or "—",
+                        "Role": u['role'].title(),
+                        "Linked Profile": linked_person_info,
+                        "Created Date": format_datetime(u['created_at']),
+                        "Status": "Active"
+                    })
+
+                st.dataframe(pd.DataFrame(user_rows), hide_index=True, use_container_width=True)
+
+        with tab_resets:
+            st.markdown("##### Admin-Assisted Password Reset Requests")
+            st.caption("Normal users submit reset requests here when email service is unconfigured for institutional administrative assistance.")
+            resets = database.get_password_reset_requests()
+            if not resets:
+                st.markdown("""
+                <div class="empty-state">
+                    <div class="empty-state-icon">✅</div>
+                    <div class="empty-state-title">No Reset Requests</div>
+                    <div class="empty-state-text">There are currently no password reset requests pending administrator attention.</div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                for r in resets:
+                    status_badge = "badge-student" if r['status'] == 'pending' else "badge-teacher"
+                    st.markdown(f"""
+                    <div class="ui-card" style="margin-bottom:0.75rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>Identifier:</strong> <code>{r['identifier']}</code>
+                                <div style="font-size:0.82rem; color:#64748b; margin-top:0.2rem;">Submitted: {format_datetime(r['created_at'])}</div>
+                            </div>
+                            <span class="badge {status_badge}">{r['status'].upper()}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if r['status'] == 'pending':
+                        if st.button(f"Mark Request #{r['id']} Resolved", key=f"resolve_pw_{r['id']}"):
+                            database.resolve_password_reset_request(r['id'])
+                            st.success(f"Request #{r['id']} marked as resolved.")
+                            st.rerun()
 
     # --------------------------------------------------------------------------
-    # 6. ADMIN EXPORT DATA
+    # 6. ADMIN ANALYTICS
+    # --------------------------------------------------------------------------
+    elif current_page == "Analytics":
+        st.markdown("## Institutional Evaluation Analytics")
+        st.caption("Deep-dive into academic benchmarks, student conduct, faculty performance, and feedback metrics.")
+
+        analytics = database.get_evaluation_analytics()
+        kpis = database.get_kpis()
+
+        # Summary KPIs
+        st.markdown(f"""
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">📊 Total Submissions</div>
+                <div class="kpi-value">{kpis['total_reviews']}</div>
+                <div class="kpi-sub">Completed evaluations</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">⭐ Institutional Rating</div>
+                <div class="kpi-value">{'%.2f' % kpis['average_rating']} ★</div>
+                <div class="kpi-sub">Composite average</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">🎓 Student Reviews</div>
+                <div class="kpi-value">{kpis['reviews_by_type']['student']}</div>
+                <div class="kpi-sub">Peer evaluations</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">👨‍🏫 Faculty Reviews</div>
+                <div class="kpi-value">{kpis['reviews_by_type']['teacher']}</div>
+                <div class="kpi-sub">Teaching evaluations</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_a1, col_a2 = st.columns(2, gap="large")
+
+        with col_a1:
+            st.markdown("#### 🎓 Student Category Benchmarks")
+            st.caption("Evaluation averages across Academics and Behaviour & Conduct.")
+            st_cats = analytics.get('student_category_averages', [])
+            if st_cats:
+                df_st_cats = pd.DataFrame([{
+                    "Category": c['category'],
+                    "Average Score": f"{c['avg_score']:.2f} ★",
+                    "Evaluations Count": c['total_evals']
+                } for c in st_cats])
+                st.dataframe(df_st_cats, hide_index=True, use_container_width=True)
+
+                chart_st = pd.DataFrame([
+                    {"Category": c['category'], "Average Score": float(c['avg_score'])}
+                    for c in st_cats
+                ])
+                st.bar_chart(chart_st.set_index("Category"), color="#0284c7")
+            else:
+                st.info("No student criterion evaluations recorded yet.")
+
+        with col_a2:
+            st.markdown("#### 👨‍🏫 Faculty Category Benchmarks")
+            st.caption("Evaluation averages across Teaching Quality, Student Support, and Class Management.")
+            t_cats = analytics.get('teacher_category_averages', [])
+            if t_cats:
+                df_t_cats = pd.DataFrame([{
+                    "Category": c['category'],
+                    "Average Score": f"{c['avg_score']:.2f} ★",
+                    "Evaluations Count": c['total_evals']
+                } for c in t_cats])
+                st.dataframe(df_t_cats, hide_index=True, use_container_width=True)
+
+                chart_t = pd.DataFrame([
+                    {"Category": c['category'], "Average Score": float(c['avg_score'])}
+                    for c in t_cats
+                ])
+                st.bar_chart(chart_t.set_index("Category"), color="#0f172a")
+            else:
+                st.info("No faculty criterion evaluations recorded yet.")
+
+        st.divider()
+
+        col_crit1, col_crit2 = st.columns(2, gap="large")
+
+        with col_crit1:
+            st.markdown("#### 🌟 Top Institutional Strengths")
+            st.caption("Top 5 highest scoring criteria across all campus evaluations.")
+            top_crit = analytics.get('top_criteria', [])
+            if top_crit:
+                df_top = pd.DataFrame([{
+                    "Criterion": tc['criterion_label'],
+                    "Category": tc['category'],
+                    "Average": f"{tc['avg_score']:.2f} ★",
+                    "Ratings": tc['total_ratings']
+                } for tc in top_crit])
+                st.dataframe(df_top, hide_index=True, use_container_width=True)
+            else:
+                st.info("Top criteria will appear after evaluations are submitted.")
+
+        with col_crit2:
+            st.markdown("#### 🎯 Focus & Growth Areas")
+            st.caption("5 criteria with greatest opportunity for improvement and development.")
+            low_crit = analytics.get('lowest_criteria', [])
+            if low_crit:
+                df_low = pd.DataFrame([{
+                    "Criterion": lc['criterion_label'],
+                    "Category": lc['category'],
+                    "Average": f"{lc['avg_score']:.2f} ★",
+                    "Ratings": lc['total_ratings']
+                } for lc in low_crit])
+                st.dataframe(df_low, hide_index=True, use_container_width=True)
+            else:
+                st.info("Growth areas will appear after evaluations are submitted.")
+
+        st.divider()
+
+        st.markdown("#### 🏆 Reviewer Participation Leaderboard")
+        st.caption("Campus community engagement and feedback submission activity by user.")
+        user_part = analytics.get('user_participation', [])
+        if user_part:
+            df_part = pd.DataFrame([{
+                "Reviewer Name": u['name'],
+                "Username": f"@{u['username']}",
+                "Registration No": u.get('registration_no') or "—",
+                "Reviews Submitted": u['reviews_submitted']
+            } for u in user_part])
+            st.dataframe(df_part, hide_index=True, use_container_width=True)
+        else:
+            st.info("No user activity recorded yet.")
+
+    # --------------------------------------------------------------------------
+    # 7. ADMIN EXPORT DATA
     # --------------------------------------------------------------------------
     elif current_page == "Export":
         st.markdown("## Export Data to CSV")
@@ -2587,8 +2891,8 @@ def render_admin_dashboard(user):
         with col_e1:
             st.markdown("""
             <div class="ui-card">
-                <div class="ui-card-header">Export Reviews</div>
-                <div class="ui-card-sub">Download complete submissions including evaluator details, ratings, and written comments.</div>
+                <div class="ui-card-header">Export Reviews & Ratings</div>
+                <div class="ui-card-sub">Download submissions with evaluator details, category scores, overall ratings, and comments.</div>
             """, unsafe_allow_html=True)
 
             export_choice = st.radio(
@@ -2616,7 +2920,11 @@ def render_admin_dashboard(user):
                     "Registration Number": r['reviewed_person_regno'] or "—",
                     "Reviewed Person Type": r['reviewed_person_type'].title(),
                     "Department": r['reviewed_person_department'],
-                    "Rating": r['rating'],
+                    "Academic Score": r.get('academic_score') or "—",
+                    "Behaviour Score": r.get('behaviour_score') or "—",
+                    "Teaching Quality Score": r.get('teaching_quality_score') or "—",
+                    "Student Support Score": r.get('student_support_score') or "—",
+                    "Overall Rating": r.get('overall_score') or r['rating'],
                     "Review Comment": r['review_text'],
                     "Date Submitted": format_datetime(r['created_at']),
                     "Date Updated": format_datetime(r['updated_at'])
@@ -2669,6 +2977,45 @@ def render_admin_dashboard(user):
                 st.info("No people records available.")
 
             st.markdown("</div>", unsafe_allow_html=True)
+
+        # Detailed Criterion Scores Export
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="ui-card">
+            <div class="ui-card-header">Export Detailed Criterion Scores (All Questions)</div>
+            <div class="ui-card-sub">Export every granular 1–5 question rating row for fine-grained psychometric and accreditation analysis.</div>
+        """, unsafe_allow_html=True)
+
+        crit_data = database.fetch_all_structured_scores_for_export()
+        st.write(f"Total structured rating rows: **{len(crit_data)}**")
+        if crit_data:
+            df_crit = pd.DataFrame([{
+                "Review ID": cd['review_id'],
+                "Reviewer Name": cd['reviewer_name'],
+                "Reviewer Username": cd['reviewer_username'],
+                "Reviewed Person": cd['reviewed_person'],
+                "Registration Number": cd.get('reviewed_person_regno') or "—",
+                "Target Type": cd['reviewed_person_type'].title(),
+                "Department": cd['reviewed_person_department'],
+                "Category": cd['category'],
+                "Criterion Question": cd['criterion_label'],
+                "Criterion Key": cd['criterion_key'],
+                "Score (1-5)": cd['score'],
+                "Timestamp": format_datetime(cd['updated_at'])
+            } for cd in crit_data])
+
+            csv_crit = df_crit.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="⬇️ Download Structured Criterion Scores CSV",
+                data=csv_crit,
+                file_name="structured_criterion_scores.csv",
+                mime="text/csv",
+                type="primary",
+                use_container_width=True
+            )
+        else:
+            st.info("No structured evaluation scores recorded yet.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ==============================================================================

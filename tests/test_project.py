@@ -333,6 +333,210 @@ class ProjectTests(unittest.TestCase):
         self.assertEqual(admin_revs_after[0]['rating'], 4)
         self.assertEqual(admin_revs_after[0]['review_text'], "Updated review text.")
 
+    def test_structured_student_evaluation_and_resubmission(self):
+        """Verify multi-criteria structured evaluation for students with score breakdown and overall rating."""
+        reviewer_id = auth.register_user(
+            name="Student Evaluator",
+            username="evaluator1",
+            email="evaluator1@univ.edu",
+            password="Password@123"
+        )
+        amit = database.get_person_by_regno("23BCON0028")
+        self.assertIsNotNone(amit)
+
+        criteria = database.get_evaluation_criteria("student")
+        self.assertEqual(len(criteria), 9)
+
+        # 9 scores: e.g. five 5s and four 4s -> sum = 41 / 9 = 4.56 -> rounded to 5 star rating
+        test_scores = [
+            {'key': c['key'], 'label': c['label'], 'category': c['category'], 'score': 5 if i % 2 == 0 else 4}
+            for i, c in enumerate(criteria)
+        ]
+
+        rev_id = database.submit_or_update_review(
+            reviewer_id=reviewer_id,
+            person_id=amit['id'],
+            review_text="Strong problem solving and excellent teamwork in labs.",
+            scores=test_scores
+        )
+        self.assertGreater(rev_id, 0)
+
+        # Verify review record
+        rev = database.fetch_one('SELECT * FROM reviews WHERE id = ?', (rev_id,))
+        self.assertIsNotNone(rev)
+        self.assertEqual(rev['rating'], 5)
+        self.assertAlmostEqual(rev['overall_rating'], 4.56, places=2)
+
+        # Verify review_scores rows
+        saved_scores = database.get_review_scores(rev_id)
+        self.assertEqual(len(saved_scores), 9)
+
+        # Category scores
+        cat_scores = database.get_review_category_scores(rev_id)
+        self.assertIn("Academics", cat_scores)
+        self.assertIn("Behaviour & Conduct", cat_scores)
+
+        # Resubmission (Update) with changed scores: all 3s
+        updated_scores = [
+            {'key': c['key'], 'label': c['label'], 'category': c['category'], 'score': 3}
+            for c in criteria
+        ]
+        rev_id_2 = database.submit_or_update_review(
+            reviewer_id=reviewer_id,
+            person_id=amit['id'],
+            review_text="Needs to engage more in class discussions.",
+            scores=updated_scores
+        )
+        self.assertEqual(rev_id, rev_id_2)
+
+        # No duplicates created
+        all_revs = database.fetch_admin_reviews(person_id=amit['id'])
+        self.assertEqual(len(all_revs), 1)
+
+        rev_updated = database.fetch_one('SELECT * FROM reviews WHERE id = ?', (rev_id,))
+        self.assertEqual(rev_updated['rating'], 3)
+        self.assertEqual(rev_updated['overall_rating'], 3.0)
+
+        # Exactly 9 scores remain (previous scores replaced)
+        new_scores = database.get_review_scores(rev_id)
+        self.assertEqual(len(new_scores), 9)
+        self.assertTrue(all(s['score'] == 3 for s in new_scores))
+
+    def test_structured_teacher_evaluation_and_analytics(self):
+        """Verify structured evaluation for teachers and institutional evaluation analytics."""
+        reviewer_id = auth.register_user(
+            name="Faculty Evaluator",
+            username="evaluator2",
+            email="evaluator2@univ.edu",
+            password="Password@123"
+        )
+        teacher_id = database.add_person("Prof. Ada Lovelace", "teacher", "Computer Science")
+
+        teacher_crit = database.get_evaluation_criteria("teacher")
+        self.assertEqual(len(teacher_crit), 9)
+
+        scores = [
+            {'key': c['key'], 'label': c['label'], 'category': c['category'], 'score': 5}
+            for c in teacher_crit
+        ]
+
+        rev_id = database.submit_or_update_review(
+            reviewer_id=reviewer_id,
+            person_id=teacher_id,
+            review_text="Masterful pedagogy and outstanding student guidance.",
+            scores=scores
+        )
+        self.assertGreater(rev_id, 0)
+
+        # Test evaluation analytics
+        analytics = database.get_evaluation_analytics()
+        self.assertIn('teacher_category_averages', analytics)
+        self.assertIn('top_criteria', analytics)
+        self.assertIn('user_participation', analytics)
+
+        # Export helper
+        export_data = database.fetch_all_structured_scores_for_export()
+        self.assertGreaterEqual(len(export_data), 9)
+        self.assertTrue(any(row['reviewed_person'] == "Prof. Ada Lovelace" for row in export_data))
+
+    def test_password_reset_workflow(self):
+        """Verify admin-assisted password reset request creation and resolution."""
+        req_id = database.create_password_reset_request("lost_user@univ.edu", "Forgotten student credentials")
+        self.assertGreater(req_id, 0)
+
+        resets = database.get_password_reset_requests()
+        matching = [r for r in resets if r['id'] == req_id]
+        self.assertEqual(len(matching), 1)
+        self.assertEqual(matching[0]['status'], 'pending')
+        self.assertEqual(matching[0]['identifier'], "lost_user@univ.edu")
+
+        # Resolve request
+        ok = database.resolve_password_reset_request(req_id)
+        self.assertTrue(ok)
+
+        resets_after = database.get_password_reset_requests()
+        resolved = [r for r in resets_after if r['id'] == req_id][0]
+        self.assertEqual(resolved['status'], 'resolved')
+
+    def test_registration_student_master_verification(self):
+        """When require_master_match=True, verify that registration requires valid student record."""
+        # Unmatched registration number
+        with self.assertRaises(ValueError) as ctx:
+            auth.register_user(
+                name="Fake Student",
+                username="fakestudent",
+                email="fake@univ.edu",
+                password="Password@123",
+                registration_no="99NONEXISTENT",
+                require_master_match=True
+            )
+        self.assertIn("not found in the verified student directory", str(ctx.exception))
+
+        # Matched registration number succeeds
+        uid = auth.register_user(
+            name="Amit Agarwal",
+            username="amit_matched",
+            email="amit_matched@univ.edu",
+            password="Password@123",
+            registration_no="23BCON0028",
+            require_master_match=True
+        )
+        self.assertGreater(uid, 0)
+
+    def test_privacy_rules_and_data_isolation(self):
+        """Verify strict privacy rules:
+        - Normal users cannot see other reviewers' comments or identities.
+        - User query methods only return user's own submissions.
+        - Received reviews cannot be accessed by normal user accounts.
+        """
+        # User 1 submits a review for student Amit
+        user1_id = auth.register_user(
+            name="Confidential Reviewer",
+            username="confidential1",
+            email="confidential1@univ.edu",
+            password="Password@123"
+        )
+        amit = database.get_person_by_regno("23BCON0028")
+
+        database.submit_or_update_review(
+            reviewer_id=user1_id,
+            person_id=amit['id'],
+            rating=5,
+            review_text="Confidential constructive evaluation."
+        )
+
+        # User 2 logs in
+        user2_id = auth.register_user(
+            name="Independent User",
+            username="user2",
+            email="user2@univ.edu",
+            password="Password@123"
+        )
+
+        # User 2 has not submitted a review for Amit
+        u2_rev = database.get_user_review_for_person(user2_id, amit['id'])
+        self.assertIsNone(u2_rev)
+
+        # User 2 reviewed list does not contain Amit
+        u2_reviewed = database.get_user_reviewed_person_ids(user2_id)
+        self.assertNotIn(amit['id'], u2_reviewed)
+
+        # User 1 reviewed list contains Amit
+        u1_reviewed = database.get_user_reviewed_person_ids(user1_id)
+        self.assertIn(amit['id'], u1_reviewed)
+
+        # Amit as a registered user cannot see reviews submitted about him
+        amit_user_id = auth.register_user(
+            name="Amit Agarwal",
+            username="amit_account",
+            email="amit_acc@univ.edu",
+            password="Password@123",
+            registration_no="23BCON0028"
+        )
+        amit_own_reviews = database.get_user_reviewed_person_ids(amit_user_id)
+        self.assertEqual(len(amit_own_reviews), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
+

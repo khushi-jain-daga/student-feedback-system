@@ -87,12 +87,14 @@ def register_user(
     email: str,
     password: str,
     role: str = 'user',
-    registration_no: Optional[str] = None
+    registration_no: Optional[str] = None,
+    require_master_match: bool = False
 ) -> int:
     """
     Register a new user account with validation.
     Ensures role is 'user' or 'admin', and username/email are unique.
     Optionally associates with a student registration number.
+    If require_master_match is True, enforces that the registration number exists in people.
     """
     name = name.strip()
     username = username.strip()
@@ -125,6 +127,14 @@ def register_user(
         existing_reg = fetch_one("SELECT id FROM users WHERE UPPER(registration_no) = ?", (reg_clean,))
         if existing_reg:
             raise ValueError(f"Registration number '{reg_clean}' is already linked to another account.")
+
+        if require_master_match:
+            master_person = fetch_one(
+                "SELECT id FROM people WHERE UPPER(registration_no) = ? AND LOWER(type) = 'student'",
+                (reg_clean,)
+            )
+            if not master_person:
+                raise ValueError(f"Registration number '{reg_clean}' was not found in the verified student directory.")
 
     pwd_hash = hash_password(password)
     user_id = create_user(
