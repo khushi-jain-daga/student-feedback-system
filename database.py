@@ -543,7 +543,7 @@ def list_people(
 
     if search_query and search_query.strip():
         term = f"%{search_query.strip().lower()}%"
-        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, "")) LIKE ? OR LOWER(p.department) LIKE ?)'
+        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)'
         params.extend([term, term, term])
 
     query += ' ORDER BY p.name ASC'
@@ -668,7 +668,7 @@ def get_students_summary(search_query: Optional[str] = None) -> List[Dict[str, A
 
     if search_query and search_query.strip():
         term = f"%{search_query.strip().lower()}%"
-        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, "")) LIKE ? OR LOWER(p.department) LIKE ?)'
+        query += ' AND (LOWER(p.name) LIKE ? OR LOWER(COALESCE(p.registration_no, '')) LIKE ? OR LOWER(p.department) LIKE ?)'
         params.extend([term, term, term])
 
     query += ' GROUP BY p.id, p.name, p.registration_no, p.department, p.active, p.linked_user_id, u.username ORDER BY p.name ASC'
@@ -1030,7 +1030,7 @@ def fetch_admin_reviews(
             LOWER(u.email) LIKE ? OR
             LOWER(COALESCE(u.registration_no, "")) LIKE ? OR
             LOWER(p.name) LIKE ? OR
-            LOWER(COALESCE(p.registration_no, "")) LIKE ? OR
+            LOWER(COALESCE(p.registration_no, '')) LIKE ? OR
             LOWER(p.department) LIKE ? OR
             LOWER(r.review_text) LIKE ?
         )'''
