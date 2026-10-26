@@ -864,6 +864,164 @@ div[data-testid="stSegmentedControl"] button {
         gap: 0.5rem;
     }
 }
+
+/* ===== Premium Product Layer ===== */
+.stApp {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(14,165,233,.08), transparent 28%),
+        radial-gradient(circle at 92% 12%, rgba(99,102,241,.07), transparent 24%),
+        #f8fafc;
+}
+.block-container { max-width: 1280px; padding-top: .75rem; }
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: rgba(255,255,255,.94);
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 30px rgba(15,23,42,.045);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 38px rgba(15,23,42,.075);
+    border-color: #cbd5e1 !important;
+}
+
+div[data-baseweb="input"], div[data-baseweb="textarea"] {
+    border-radius: 12px !important;
+}
+.stTextInput input, .stTextArea textarea {
+    background: #fff !important;
+}
+
+.landing-hero {
+    min-height: 390px;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 82% 18%, rgba(56,189,248,.28), transparent 28%),
+        radial-gradient(circle at 20% 100%, rgba(99,102,241,.20), transparent 32%),
+        linear-gradient(145deg,#07111f 0%,#0f172a 45%,#172554 100%);
+    border: 1px solid rgba(148,163,184,.18);
+    box-shadow: 0 24px 70px rgba(15,23,42,.18);
+}
+.landing-hero:after {
+    content:"";
+    position:absolute;
+    width:180px;height:180px;border-radius:50%;
+    right:-50px;bottom:-70px;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 0 0 38px rgba(255,255,255,.025),0 0 0 78px rgba(255,255,255,.02);
+}
+.landing-title { font-size: 2.55rem; line-height: 1.08; max-width: 520px; }
+.landing-subtitle { font-size: 1.02rem; max-width: 480px; }
+.auth-container-card {
+    border-radius: 22px;
+    padding: 2rem 2.1rem;
+    box-shadow: 0 20px 55px rgba(15,23,42,.09);
+}
+
+.premium-home-hero {
+    position:relative;
+    overflow:hidden;
+    padding: 2.35rem 2.5rem;
+    border-radius: 24px;
+    background:
+      radial-gradient(circle at 88% 20%, rgba(56,189,248,.30), transparent 24%),
+      radial-gradient(circle at 70% 100%, rgba(99,102,241,.22), transparent 30%),
+      linear-gradient(135deg,#07111f 0%,#0f172a 48%,#172554 100%);
+    color:#fff;
+    box-shadow:0 22px 60px rgba(15,23,42,.16);
+    margin-bottom:1.45rem;
+    min-height:245px;
+}
+.premium-home-hero:after {
+    content:"";
+    position:absolute;right:-40px;top:-55px;width:220px;height:220px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 0 0 42px rgba(255,255,255,.025),0 0 0 84px rgba(255,255,255,.018);
+}
+.hero-eyebrow {
+    display:inline-flex;align-items:center;gap:.45rem;
+    padding:.34rem .72rem;border-radius:999px;
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.13);
+    font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:#bae6fd;margin-bottom:1rem;
+}
+.hero-title {font-size:2.35rem;font-weight:800;letter-spacing:-.045em;line-height:1.08;margin-bottom:.65rem;max-width:620px;}
+.hero-subtitle {font-size:.98rem;color:#cbd5e1;line-height:1.6;max-width:650px;}
+.hero-meta-row {display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem;}
+.hero-meta-pill {
+    padding:.5rem .78rem;border-radius:10px;background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.10);font-size:.78rem;color:#e2e8f0;font-weight:600;
+}
+
+.mini-stats-grid {
+    display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin:0 0 1.45rem 0;
+}
+.mini-stat {
+    background:rgba(255,255,255,.92);border:1px solid #e2e8f0;border-radius:16px;padding:1rem 1.05rem;
+    box-shadow:0 8px 26px rgba(15,23,42,.04);
+}
+.mini-stat-label {font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:#64748b;font-weight:700;margin-bottom:.4rem;}
+.mini-stat-value {font-size:1.45rem;font-weight:800;letter-spacing:-.03em;color:#0f172a;}
+.mini-stat-sub {font-size:.75rem;color:#94a3b8;margin-top:.2rem;}
+
+.section-kicker {font-size:.73rem;text-transform:uppercase;letter-spacing:.1em;color:#0284c7;font-weight:800;margin-bottom:.35rem;}
+.section-title-xl {font-size:1.45rem;font-weight:800;letter-spacing:-.025em;color:#0f172a;margin-bottom:.25rem;}
+.section-sub {font-size:.88rem;color:#64748b;margin-bottom:1rem;}
+
+.home-action-card {
+    min-height:250px;
+    border-radius:20px;
+    padding:1.6rem;
+    background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%);
+    box-shadow:0 14px 34px rgba(15,23,42,.055);
+}
+.home-card-icon-wrap {width:52px;height:52px;border-radius:15px;font-size:1.45rem;}
+.home-card-title {font-size:1.28rem;}
+.progress-track {height:9px;background:#eef2f7;border:none;}
+.progress-fill {background:linear-gradient(90deg,#38bdf8 0%,#2563eb 100%);box-shadow:0 0 14px rgba(37,99,235,.25);}
+
+.how-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;margin-top:1rem;}
+.how-card {
+    background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:1.05rem 1.1rem;
+    box-shadow:0 8px 24px rgba(15,23,42,.035);
+}
+.how-num {width:28px;height:28px;border-radius:9px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;margin-bottom:.65rem;}
+.how-title {font-size:.9rem;font-weight:800;color:#0f172a;margin-bottom:.2rem;}
+.how-copy {font-size:.78rem;color:#64748b;line-height:1.45;}
+
+.dir-header-box {
+    background:linear-gradient(135deg,#ffffff 0%,#f8fbff 100%);
+    border:1px solid #e2e8f0;border-radius:18px;padding:1.25rem 1.35rem;margin-bottom:1rem;
+    box-shadow:0 10px 28px rgba(15,23,42,.04);
+}
+.dir-title {font-size:1.95rem;}
+.pcard-avatar {width:48px;height:48px;border-radius:14px;font-size:.95rem;}
+.pcard-name {font-size:1rem;margin-top:.15rem;}
+.status-submitted {padding:.28rem .62rem;}
+
+.target-profile-card {
+    border-radius:20px;padding:1.55rem 1.65rem;
+    background:linear-gradient(135deg,#fff 0%,#f8fbff 100%);
+    box-shadow:0 14px 36px rgba(15,23,42,.06);
+}
+.target-avatar {width:60px;height:60px;border-radius:17px;}
+.privacy-notice-card {
+    border-radius:16px;background:linear-gradient(135deg,#f0f9ff 0%,#f8fafc 100%);
+    border-color:#bae6fd;
+}
+.submission-success-card {border-radius:24px;box-shadow:0 20px 50px rgba(22,163,74,.10);}
+
+@media (max-width: 900px) {
+  .mini-stats-grid {grid-template-columns:repeat(2,1fr);}
+  .how-grid {grid-template-columns:1fr;}
+  .premium-home-hero {padding:1.7rem 1.4rem;min-height:auto;}
+  .hero-title {font-size:1.8rem;}
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -1217,17 +1375,9 @@ def render_user_navbar(user):
 
 
 def render_user_home(user):
-    """User Home dashboard with greeting, progress metrics, and direct directory browsing CTAs."""
+    """Premium user home dashboard with hero, live participation stats, actions, and guided flow."""
     first_name = user['name'].split()[0] if user.get('name') else 'Student'
 
-    st.markdown(f"""
-    <div class="home-greeting-box">
-        <div class="home-greeting-title">Hello, {first_name} 👋</div>
-        <div class="home-greeting-sub">Share constructive feedback and help your academic community grow.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Compute numbers for Student and Teacher cards
     eligible_students = database.list_people(
         person_type="student",
         active_only=True,
@@ -1246,9 +1396,58 @@ def render_user_home(user):
     reviews_by_type = database.count_user_reviews_by_type(user['id'])
     reviewed_students = min(reviews_by_type.get('student', 0), total_students)
     reviewed_teachers = min(reviews_by_type.get('teacher', 0), total_teachers)
+    total_given = reviewed_students + reviewed_teachers
+    total_available = total_students + total_teachers
+    overall_pct = int((total_given / total_available * 100)) if total_available else 0
+    st_pct = int((reviewed_students / total_students * 100)) if total_students else 0
+    t_pct = int((reviewed_teachers / total_teachers * 100)) if total_teachers else 0
 
-    st_pct = int((reviewed_students / total_students * 100)) if total_students > 0 else 0
-    t_pct = int((reviewed_teachers / total_teachers * 100)) if total_teachers > 0 else 0
+    st.markdown(f"""
+    <div class="premium-home-hero">
+        <div class="hero-eyebrow">● Campus Feedback Portal</div>
+        <div class="hero-title">Welcome back, {first_name}.<br>Make every voice count.</div>
+        <div class="hero-subtitle">
+            Give thoughtful, private feedback to classmates and faculty through a secure institutional workflow.
+            Your individual submissions remain visible only to authorized administrators.
+        </div>
+        <div class="hero-meta-row">
+            <div class="hero-meta-pill">🔒 Private by design</div>
+            <div class="hero-meta-pill">✓ Verified directory</div>
+            <div class="hero-meta-pill">↻ Feedback can be updated</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="mini-stats-grid">
+        <div class="mini-stat">
+            <div class="mini-stat-label">Your Feedback</div>
+            <div class="mini-stat-value">{total_given}</div>
+            <div class="mini-stat-sub">submissions completed</div>
+        </div>
+        <div class="mini-stat">
+            <div class="mini-stat-label">Participation</div>
+            <div class="mini-stat-value">{overall_pct}%</div>
+            <div class="mini-stat-sub">of available evaluations</div>
+        </div>
+        <div class="mini-stat">
+            <div class="mini-stat-label">Students</div>
+            <div class="mini-stat-value">{total_students}</div>
+            <div class="mini-stat-sub">available classmates</div>
+        </div>
+        <div class="mini-stat">
+            <div class="mini-stat-label">Faculty</div>
+            <div class="mini-stat-value">{total_teachers}</div>
+            <div class="mini-stat-sub">active teachers</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="section-kicker">Quick actions</div>
+    <div class="section-title-xl">Choose who you want to review</div>
+    <div class="section-sub">Search the verified directory, submit feedback, and update it later whenever needed.</div>
+    """, unsafe_allow_html=True)
 
     col_c1, col_c2 = st.columns(2, gap="large")
 
@@ -1258,18 +1457,16 @@ def render_user_home(user):
             <div>
                 <div class="home-card-icon-wrap icon-blue">🎓</div>
                 <div class="home-card-title">Student Feedback</div>
-                <div class="home-card-desc">Review your classmates and share constructive feedback.</div>
+                <div class="home-card-desc">Find classmates by name or registration number and share constructive, respectful feedback.</div>
                 <div class="home-stats-meta">
                     <span>{reviewed_students} of {total_students} reviewed</span>
-                    <span>{st_pct}% completed</span>
+                    <span>{st_pct}%</span>
                 </div>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: {st_pct}%;"></div>
-                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:{st_pct}%"></div></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Browse Students →", key="home_browse_students", type="primary", use_container_width=True):
+        if st.button("Browse Student Directory  →", key="home_browse_students", type="primary", use_container_width=True):
             st.session_state.user_nav = "Students"
             st.session_state.active_target_person = None
             st.session_state.review_submitted = False
@@ -1281,31 +1478,47 @@ def render_user_home(user):
             <div>
                 <div class="home-card-icon-wrap icon-slate">👨‍🏫</div>
                 <div class="home-card-title">Teacher Feedback</div>
-                <div class="home-card-desc">Share feedback about faculty members.</div>
+                <div class="home-card-desc">Evaluate faculty members with the same private, structured feedback workflow.</div>
                 <div class="home-stats-meta">
                     <span>{reviewed_teachers} of {total_teachers} reviewed</span>
-                    <span>{t_pct}% completed</span>
+                    <span>{t_pct}%</span>
                 </div>
-                <div class="progress-track">
-                    <div class="progress-fill" style="width: {t_pct}%;"></div>
-                </div>
+                <div class="progress-track"><div class="progress-fill" style="width:{t_pct}%"></div></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("Browse Teachers →", key="home_browse_teachers", type="primary", use_container_width=True):
+        if st.button("Browse Faculty Directory  →", key="home_browse_teachers", type="primary", use_container_width=True):
             st.session_state.user_nav = "Teachers"
             st.session_state.active_target_person = None
             st.session_state.review_submitted = False
             st.rerun()
 
-    # Small Privacy Notice
     st.markdown("""
+    <div style="height:.8rem"></div>
+    <div class="section-kicker">Simple & secure</div>
+    <div class="section-title-xl">How it works</div>
+    <div class="how-grid">
+        <div class="how-card">
+            <div class="how-num">1</div>
+            <div class="how-title">Find a person</div>
+            <div class="how-copy">Search students or faculty from the verified institutional directory.</div>
+        </div>
+        <div class="how-card">
+            <div class="how-num">2</div>
+            <div class="how-title">Share feedback</div>
+            <div class="how-copy">Choose a 1–5 rating and add a specific, constructive written comment.</div>
+        </div>
+        <div class="how-card">
+            <div class="how-num">3</div>
+            <div class="how-title">Stay private</div>
+            <div class="how-copy">Individual feedback and reviewer identity remain restricted to administrators.</div>
+        </div>
+    </div>
     <div class="home-privacy-banner">
-        <span style="font-size:1.15rem;">🔒</span>
-        <span>Your individual feedback is visible only to authorized administrators.</span>
+        <span style="font-size:1.15rem;">🛡️</span>
+        <span><strong>Privacy protected:</strong> normal users cannot see reviews, reviewer identities, received ratings, or admin analytics.</span>
     </div>
     """, unsafe_allow_html=True)
-
 
 def render_student_directory(user):
     """Student Directory with search, responsive cards, submitted state, and pagination."""
